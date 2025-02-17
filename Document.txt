@@ -5,3 +5,6 @@ Requirments
 3. Add new books
 4. Search books
 5.
+6. mybooks 
+7. star wars
+8. alekos the great 
