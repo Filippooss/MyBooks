@@ -4,4 +4,4 @@ Requirments
 2. Save books
 3. Add new books
 4. Search books
-5. Pull info from api
+5. View popular books
