@@ -1,9 +1,10 @@
 from tkinter import *
+from Utility.view_manager import ViewManager
 
 class LoginView(Frame):
     def __init__(self,container:Misc):
         super().__init__(container)
-
+        
         options = {'padx':5,'pady':5}
 
 
@@ -22,11 +23,13 @@ class LoginView(Frame):
         self.entry_password = Entry(self, show='*', textvariable=self.password)
         self.btn_login = Button(self,text='Login', command=lambda: self.login(), state=ACTIVE)
         self.lb_password_info = Label(self, justify=LEFT, textvariable=self.password_info)
+        self.bt_create_account = Button(self,text="Sign Up",command=lambda: self.navigate_to_signup_view())
 
         # events
         self.entry_username.bind("<KeyRelease>", self.on_username_change_callback)
         self.entry_password.bind("<KeyRelease>", self.on_password_change_callback)
 
+        #display
         self.label.grid(row=0, column=0,columnspan=2)
         self.lb_username.grid(row=1,column=0)
         self.entry_username.grid(row=1, column=1)
@@ -35,10 +38,15 @@ class LoginView(Frame):
         self.entry_password.grid(row=2, column=1)
         self.btn_login.grid(row=4, column=0,columnspan=2)
         self.lb_password_info.grid(row=3, column=0,columnspan=2)
+        self.bt_create_account.grid(row=5,column=0,columnspan=2)
+
         # otan den 3ero ti args perni ena widget
         # print(lb_password_info.configure().keys())
 
+    def navigate_to_signup_view(self):
+        ViewManager.change_view(self,)
 
+    
     def login(self):
         pass
 

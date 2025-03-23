@@ -11,7 +11,7 @@ class ViewManager:
     def change_view(open_view:tk.Widget, new_view:tk.Widget):
 
         open_view.destroy()
-
+        
         new_view.pack()
 
 
