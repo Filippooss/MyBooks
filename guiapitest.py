@@ -1,6 +1,6 @@
 from tkinter import *
 from PIL import Image, ImageTk
-import requests
+from urllib.request import urlopen
 from urllib import request
 from tkinter import filedialog
 import json
@@ -57,10 +57,11 @@ class Application:
         book_info_frame = Frame(self.search_frame)
         book_info_frame.grid(row=0, column=0)
         title_data, author_data, publisher_data, published_date_data, thumbnail_data = self.get_info(iter_num)
-        img = Image.open(requests.get(thumbnail_data, stream=True).raw)
+        img = Image.open(urlopen(thumbnail_data))
         img.thumbnail((128.0, 128.0), Image.Resampling.LANCZOS)
         photo_image = ImageTk.PhotoImage(img)
-        book_image_label = Label(book_info_frame, image=photo_image)
+        book_image_label = Label(book_info_frame)   #image=photo_image
+        book_image_label['image'] = photo_image
         book_image_label.grid(row=0, column=0, rowspan=3)
         book_image_label.image = photo_image
         book_title_label = Label(book_info_frame, text=title_data)
@@ -79,10 +80,11 @@ class Application:
     def show_data(self, num):
         self.new_win.destroy()
         title, author, publisher, published_date, thumbnail = self.get_info(num)
-        img = Image.open(requests.get(thumbnail, stream=True).raw)
+        img = Image.open(urlopen(thumbnail))
         img.thumbnail((128.0, 128.0), Image.Resampling.LANCZOS)
         photo_image = ImageTk.PhotoImage(img)
-        self.image_label.config(image=photo_image)
+        #self.image_label.config(image=photo_image)
+        self.image_label['image'] = photo_image
         self.image_label.image = photo_image
         self.author_entry.delete(0, 'end')
         self.author_entry.insert(0, author)
@@ -99,15 +101,17 @@ class Application:
         # ratio = min(128 / width, 256 / height)
         # new_size = (round(width * ratio), round(height * ratio))
         # new_image = img.resize(new_size, Image.Resampling.LANCZOS)
-        img.thumbnail((128.0, 128.0), Image.Resampling.LANCZOS)
+        img.thumbnail((256.0, 128.0), Image.Resampling.LANCZOS)
         photo_image = ImageTk.PhotoImage(img)  # new_image
-        self.image_label.config(image=photo_image)
+        #self.image_label.config(image=photo_image)
+        self.image_label['image'] = photo_image
         self.image_label.image = photo_image
 
     def get_info(self, number):
         url = 'https://www.googleapis.com/books/v1/volumes?q='
+        max_results = '&maxResults=5'
         fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,categories,imageLinks))'
-        full_url = url + self.title_entry.get().replace(" ", "%20") + fields
+        full_url = url + self.title_entry.get().replace(" ", "%20") + max_results + fields
         response = request.urlopen(full_url)
         if response.code == 200:
             data = response.read()
