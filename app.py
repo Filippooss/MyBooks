@@ -1,11 +1,9 @@
 import tkinter as tk
 from Views.login_view import LoginView
 
-
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-
         #configure the root window
         self.title("MyBooks")
         self.geometry("420x420")
@@ -30,7 +28,7 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
     app = App()
-    frame = LoginView(app)
+    login_view = LoginView(app)
 
     #run
     app.mainloop()

@@ -1,4 +1,3 @@
-from cProfile import label
 from tkinter import *
 
 class LoginView(Frame):
@@ -10,18 +9,18 @@ class LoginView(Frame):
 
         #display frame
         self.pack(**options)
-
         self.password = StringVar()
         self.username = StringVar()
         self.password_info = StringVar()
 
         # define widgets
+
         self.label = Label(self, text='Login', font=('Arial', 40, 'bold'))
         self.lb_username = Label(self,text='Enter Username' , font=('Arial',10),padx=0,pady=0)
         self.entry_username = Entry(self, textvariable=self.username)
         self.lb_password = Label(self,text='Enter Password',font=('Arial',10))
         self.entry_password = Entry(self, show='*', textvariable=self.password)
-        self.btn_login = Button(self,text='Login', command=self.login, state=ACTIVE)
+        self.btn_login = Button(self,text='Login', command=lambda: self.login(), state=ACTIVE)
         self.lb_password_info = Label(self, justify=LEFT, textvariable=self.password_info)
 
         # events
@@ -49,5 +48,8 @@ class LoginView(Frame):
     def on_password_change_callback(self,event):
         if any(c.isupper() for c in self.password.get()):
             self.password_info.set("")
+        elif self.password.get() == '':
+            self.password_info.set("")
         else:
             self.password_info.set("Password should have one upper case")
+
