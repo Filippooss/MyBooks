@@ -1,15 +1,14 @@
 from tkinter import *
-from Utility.view_manager import ViewManager
+from .view import View
 
-class LoginView(Frame):
-    def __init__(self,container:Misc):
-        super().__init__(container)
+class LoginView(View):
+    def __init__(self,master:Misc,view_manager):
+        super().__init__(master)
         
-        options = {'padx':5,'pady':5}
-
+        self.view_manager = view_manager
 
         #display frame
-        self.pack(**options)
+        #self.grid(pady=5,padx=5,sticky='nsew',row=0,column=0)
         self.password = StringVar()
         self.username = StringVar()
         self.password_info = StringVar()
@@ -44,7 +43,8 @@ class LoginView(Frame):
         # print(lb_password_info.configure().keys())
 
     def navigate_to_signup_view(self):
-        ViewManager.change_view(self,)
+        #self.view_manager.change_view()
+        pass
 
     
     def login(self):

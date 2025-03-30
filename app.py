@@ -1,5 +1,5 @@
 import tkinter as tk
-from Views.login_view import LoginView
+from Utility.view_manager import ViewManager
 
 class App(tk.Tk):
     def __init__(self):
@@ -28,7 +28,6 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
     app = App()
-    login_view = LoginView(app)
-
+    controller = ViewManager(app)
     #run
     app.mainloop()
