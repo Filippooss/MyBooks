@@ -156,7 +156,6 @@ def get_info(title_data):
         book_data = data.decode('Utf-8')
         data_needed = json.loads(book_data)
         results_list = []
-        results_dict = {}
         if "items" in data_needed:
             for number in range(len(data_needed["items"])):
                 if "title" in data_needed["items"][number]["volumeInfo"]:
@@ -185,7 +184,7 @@ def get_info(title_data):
                     description = ''
                 results_dict = {"Τίτλος": title, "Συγγραφέας": author, "Εκδότης": publisher, "Έτος έκδοσης": published_date, "Εξώφυλλο": thumbnail, "Περιγραφή": description}
                 results_list.append(results_dict)
-            return results_dict
+            return results_list
         else:
             print('not found')
     else:
