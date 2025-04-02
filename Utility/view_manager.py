@@ -1,6 +1,4 @@
 import tkinter as tk
-
-from Views.view import View
 from Views.login_view import LoginView
 from Views.signup_view import SignupView
 
@@ -9,28 +7,29 @@ class ViewManager:
 
     def __init__(self,app:tk.Tk):
         self.app = app
-        self.views:dict[View,View] = {}
 
-        self.view_list:list[View] = [
-            SignupView,
-            LoginView
-        ]
+        self.current_displayed_view = None
 
-        for view_class in self.view_list:
-            view = view_class(master=self.app,view_manager=self)
-            self.views[view_class] = view
+        #all views must be added here
+        self.view_dick = {
+            'SignupView':SignupView,
+            'LoginView':LoginView
+        }
 
-            #how to display the view
-            #view.grid(pady=5,padx=5,sticky='nsew',row=0,column=0)
-            view.pack(pady=5,padx=5,expand=True,fill="both")
+        #display the default view which is the login view
+        self.current_displayed_view = self.view_dick['LoginView'](master=self.app,view_manager=self)
+        self.current_displayed_view.display_view()
 
-        #display the view
-        self.views[LoginView].tkraise()
+    def change_view(self,new_view):
+        """ Destroys current open view and displays the new one """
+        #create instase of the new view
+ 
+        temp_view = self.view_dick[new_view](master=self.app,view_manager=self)
+        
 
-    def change_view(self,new_view:type[View]):
-        view = self.views[new_view]
-        #open_view.destroy()
-
+        self.current_displayed_view.destroy_view()
+        self.current_displayed_view = temp_view
+        self.current_displayed_view.display_view()
 
 
 

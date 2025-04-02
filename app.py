@@ -11,7 +11,7 @@ class App(tk.Tk):
         app_icon = tk.PhotoImage(file='./Images/book.png')
         self.iconphoto(True,app_icon)
         self.config(background="#c3ddd7")
-
+        
         # main window setup
 
         # menubar
@@ -28,6 +28,6 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
     app = App()
-    controller = ViewManager(app)
+    view_manager = ViewManager(app)
     #run
     app.mainloop()
