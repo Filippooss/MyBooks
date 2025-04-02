@@ -45,7 +45,6 @@ class SignupView(tk.Frame):
 
 
     def display_view(self):
-        
         self.pack(pady=5,padx=5,expand=True,fill="both")
 
     def destroy_view(self):

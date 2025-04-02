@@ -19,7 +19,7 @@ class LoginView(tk.Frame):
         self.entry_username = ttk.Entry(self, textvariable=self.username)
         self.lb_password = ttk.Label(self,text='Enter Password',font=('Arial',10))
         self.entry_password = ttk.Entry(self, show='*', textvariable=self.password)
-        self.btn_login = ttk.Button(self,text='Login', command=lambda: self.login())
+        self.btn_login = ttk.Button(self,text='Login', command=lambda: self.on_login())
         self.lb_password_info = ttk.Label(self, textvariable=self.password_info)
         self.bt_signup = ttk.Button(self,text="Sign Up",command=lambda: self.navigate_to_signup_view())
 
@@ -51,8 +51,9 @@ class LoginView(tk.Frame):
     def destroy_view(self):
         super().destroy()
 
-    def login(self):
-        pass
+    def on_login(self):
+        if(True):
+            self.view_manager.change_view("SearchView")
 
     def on_username_change_callback(self,event):
         pass
