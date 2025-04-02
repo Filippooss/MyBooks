@@ -150,7 +150,7 @@ class Api:
 
     def get_info(self, title_data):
         url = 'https://www.googleapis.com/books/v1/volumes?q='
-        max_results = '&maxResults=5'
+        max_results = '&maxResults=10'
         fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,categories,imageLinks))'
         full_url = url + title_data.replace(" ", "%20") + max_results + fields
         response = request.urlopen(full_url)
