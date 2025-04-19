@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import database
 
 
 class SignupView(tk.Frame):
@@ -23,6 +24,10 @@ class SignupView(tk.Frame):
         self.bt_signup = ttk.Button(self,text="Sign up",command=lambda: self.on_sign_up())
         self.bt_login = ttk.Button(self,text="Already have an account?",command=lambda: self.on_login())
 
+
+        self.entry_password.bind("<KeyRelease>", self.on_password_change_callback)
+
+
         #display widgets
         self.title_label.grid(row=0,column=0,columnspan=2)
         self.lb_username.grid(row=1,column=0)
@@ -40,12 +45,21 @@ class SignupView(tk.Frame):
     def on_sign_up(self):
         if(self.password.get() == self.re_password.get()):
             print("o kodikos ine sostos")
+            database.insert_user(self.username.get(),self.password.get())
             #self.view_manager.change_view()
         
+    def on_password_change_callback(self,event):
+        self.lb_password_info.config(foreground="black")
 
+        if any(c.isupper() for c in self.password.get()):
+            self.password_info.set("")
+        elif self.password.get() == '':
+            self.password_info.set("")
+        else:
+            self.password_info.set("Password should have one upper case")
 
     def display_view(self):
-        self.pack(pady=5,padx=5,expand=True,fill="both")
+        self.pack(expand=True,fill="both")
 
     def destroy_view(self):
         super().destroy()

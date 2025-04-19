@@ -4,13 +4,20 @@ from Utility.view_manager import ViewManager
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        self.view_manager = ViewManager(self)
+
         #configure the root window
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        print(screen_width)
         self.title("MyBooks")
-        self.geometry("420x420")
+        self.geometry(f"420x420+{int(screen_width/2 - 420/2)}+{int(screen_height/2 - 420/2)}")
+        self.minsize(420,420)
 
         app_icon = tk.PhotoImage(file='./Images/book.png')
         self.iconphoto(True,app_icon)
-        self.config(background="#c3ddd7")
+        self.config()
         
         # main window setup
 
@@ -24,10 +31,12 @@ class App(tk.Tk):
         self.file_menu.add_command(label="Open")
         self.file_menu.add_command(label="Add Book")
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Exit",command=quit)
+        self.file_menu.add_command(label="Log out",command=lambda: self.on_log_out())
+        self.file_menu.add_command(label="Exit",command=lambda: self.quit())
+    def on_log_out(self):
+        self.view_manager.change_view("LoginView")
 
 if __name__ == "__main__":
     app = App()
-    view_manager = ViewManager(app)
     #run
     app.mainloop()
