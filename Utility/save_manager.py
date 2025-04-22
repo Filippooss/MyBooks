@@ -37,14 +37,14 @@ def load(data_type="app") -> dict:
 
     if not os.path.exists(path):
         print("nothing to load")
-        return None
+        return dict()
     
     try:
         with open(f"{path}/{data_type}.txt","rt") as file:
             data = json.load(file)
             return data
     except FileNotFoundError:
-        return None
+        return dict()
 
 if __name__ == "__main__":
     pass

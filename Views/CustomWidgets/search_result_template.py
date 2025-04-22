@@ -1,8 +1,10 @@
+import io
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image,ImageTk
 from urllib.request import urlopen
-import io
+
+from PIL import Image, ImageTk
+
 
 class SearchResultTemplate(tk.Frame):
 
@@ -33,7 +35,7 @@ class SearchResultTemplate(tk.Frame):
 
         #display
         self.cv_image.pack(side="left")
-        self.f_info.pack(side="right",fill="none")
+        self.f_info.pack(side="left",fill="none")
 
         self.lb_title.pack(side="top")
         self.lb_author.pack(side='top')

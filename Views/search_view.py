@@ -1,20 +1,19 @@
 import tkinter as tk
 from tkinter import ttk
-
 from api import get_info
 from Views.CustomWidgets.search_result_template import SearchResultTemplate
 from Views.CustomWidgets.vertical_scrolled_frame import VerticalScrolledFrame
 
 
+
 class SearchView(tk.Frame):
     def __init__(self,master:tk.Misc,view_manager):
         super().__init__(master=master)
-
         self.view_manager = view_manager
 
         self.search_bar_text = tk.StringVar()
         self.list_results = tk.Variable()
-        self.search_results = {}
+        self.search_results:dict = dict()
 
         #define widgets
         self.f_top=ttk.Label(self)
