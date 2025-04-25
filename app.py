@@ -29,12 +29,16 @@ class App(tk.Tk):
 
         self.menubar.add_cascade(label="File",menu=self.file_menu)
         self.file_menu.add_command(label="Open")
-        self.file_menu.add_command(label="Add Book")
+        self.file_menu.add_command(label="Add Book",command=self.on_add_book)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Log out",command=lambda: self.on_log_out())
         self.file_menu.add_command(label="Exit",command=lambda: self.quit())
+
     def on_log_out(self):
         self.view_manager.change_view("LoginView")
+    
+    def on_add_book(self):
+        self.view_manager.change_view("AddBookView")
 
 if __name__ == "__main__":
     app = App()

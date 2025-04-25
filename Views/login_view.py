@@ -53,10 +53,10 @@ class LoginView(tk.Frame):
         self.entry_username.focus()
 
         #load data
-        if(user_data != None):
+        if(len(user_data) > 0):
             self.var_username.set(user_data["name"]) 
             self.var_password.set(user_data["password"]) 
-        if(app_data != None):
+        if(len(app_data) > 0):
             self.var_save_credentials.set(app_data["save_credentials"])
 
 

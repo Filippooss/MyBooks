@@ -1,4 +1,5 @@
 import tkinter as tk
+from Views.add_book_view import AddBookView
 from Views.login_view import LoginView
 from Views.signup_view import SignupView
 from Views.search_view import SearchView
@@ -15,7 +16,8 @@ class ViewManager:
         self.view_dick = {
             'SignupView':SignupView,
             'LoginView':LoginView,
-            'SearchView':SearchView
+            'SearchView':SearchView,
+            "AddBookView":AddBookView
         }
 
         #display the default view which is the login view
