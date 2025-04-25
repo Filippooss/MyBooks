@@ -5,36 +5,59 @@ def create_database():
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
     
-    # Δημιουργία πίνακα χρηστών
+    # 1) Δημιουργία πίνακα χρηστών (User)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            email TEXT
         )
     ''')
     
-    # Δημιουργία πίνακα βιβλίων
+    # 2) Δημιουργία πίνακα βιβλίων (Books)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS books (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            book_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
+            release_year INTEGER,
+            description TEXT,
             author TEXT NOT NULL,
-            year INTEGER,
-            cover_url TEXT
+            version TEXT,
+            image BLOB
         )
     ''')
-    
-    # Δημιουργία πίνακα βαθμολογιών και σχολίων
+
+    # 3) Δημιουργία πίνακα βαθμολογιών (Ratings)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ratings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rating_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            value INTEGER CHECK(value BETWEEN 1 AND 5),
+            comment TEXT,
+            username TEXT NOT NULL,
+            FOREIGN KEY (username) REFERENCES users(username)
+        )
+    ''')
+
+    # 4) Δημιουργία πίνακα συσχέτισης βιβλίων-βαθμολογιών (Books_Ratings)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS books_ratings (
+            book_id INTEGER,
+            rating_id INTEGER,
+            PRIMARY KEY (book_id, rating_id),
+            FOREIGN KEY (book_id) REFERENCES books(book_id),
+            FOREIGN KEY (rating_id) REFERENCES ratings(rating_id)
+        )
+    ''')
+
+    # 5) Δημιουργία πίνακα συσχέτισης χρηστών-βιβλίων (User_Book)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_book (
             user_id INTEGER,
             book_id INTEGER,
-            rating INTEGER CHECK(rating BETWEEN 1 AND 5),
-            comment TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (book_id) REFERENCES books(id)
+            PRIMARY KEY (user_id, book_id),
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (book_id) REFERENCES books(book_id)
         )
     ''')
     
@@ -86,30 +109,8 @@ def search_books(title):
     else:
         print("Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο. Αναζήτηση στο Google Books API...")
         fetch_book_from_google_books(title)
+        return books
 
-def fetch_book_from_google_books(title):
-    url = f"https://www.googleapis.com/books/v1/volumes?q={title}&maxResults=1&printType=books&projection=lite"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        if "items" in data:
-            book_info = data["items"][0]["volumeInfo"]
-            book_title = book_info.get("title", "Άγνωστο")
-            book_author = ", ".join(book_info.get("authors", ["Άγνωστος"]))
-            book_year = book_info.get("publishedDate", "Άγνωστο")[:4]
-            book_cover = book_info.get("imageLinks", {}).get("thumbnail", "")
-            
-            print(f"Βιβλίο από Google Books:")
-            print(f"Τίτλος: {book_title}")
-            print(f"Συγγραφέας: {book_author}")
-            print(f"Έτος: {book_year}")
-            print(f"Εξώφυλλο: {book_cover}")
-            
-            insert_book(book_title, book_author, book_year, book_cover)
-        else:
-            print("Δεν βρέθηκε βιβλίο στο Google Books API.")
-    else:
-        print("Σφάλμα κατά την επικοινωνία με το Google Books API.")
 
 if __name__ == "__main__":
     create_database()
