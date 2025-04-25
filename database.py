@@ -75,10 +75,10 @@ def insert_user(username, password):
         print("Το όνομα χρήστη υπάρχει ήδη!")
     conn.close()
 
-def insert_book(title, author, year, cover_url):
+def insert_book(title, author, year, image_RAW):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO books (title, author, year, cover_url) VALUES (?, ?, ?, ?)", (title, author, year, cover_url))
+    cursor.execute("INSERT INTO books (title, author, year, image_RAW) VALUES (?, ?, ?, ?)", (title, author, year, image_RAW))
     conn.commit()
     conn.close()
     print("Το βιβλίο προστέθηκε επιτυχώς!")
