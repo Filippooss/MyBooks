@@ -1,8 +1,36 @@
 from urllib import request
 import json
+import time
+import asyncio
+import aiohttp
 
+def fetch_book_data(search_data):
+    asyncio.run(api_call(search_data))
+
+async def api_call(search_data):
+    results_list_data = get_info(search_data)
+    image_calls_start = time.perf_counter()
+    urls = []
+    for i in range(len(results_list_data)):
+        urls.append(results_list_data[i]["Εξώφυλλο"])
+    tasks = []
+    async with aiohttp.ClientSession() as session:
+        for url in urls:
+            if url != '':
+                tasks.append(get_image_data(session, url))
+                # tasks.append(asyncio.create_task(self.get_image_data(session, url)))
+        results = await asyncio.gather(*tasks)
+    count = 0
+    for num in range(len(results_list_data)):
+        if results_list_data[num]["Εξώφυλλο"] != '':
+            results_list_data[num]["Εξώφυλλο"] = results[count]
+            count = count + 1
+    image_calls_end = time.perf_counter()
+    print(f"image calls:{image_calls_end - image_calls_start}")
+    return results_list_data
 
 def get_info(search_data):
+    start = time.perf_counter()
     url = 'https://www.googleapis.com/books/v1/volumes?q='
     max_results = '&maxResults=10'
     fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,categories,imageLinks))'
@@ -41,8 +69,18 @@ def get_info(search_data):
                     description = ''
                 results_dict = {"Τίτλος": title, "Συγγραφέας": author, "Εκδότης": publisher, "Έτος έκδοσης": published_date, "Εξώφυλλο": thumbnail, "Περιγραφή": description}
                 results_list.append(results_dict)
+            end = time.perf_counter()
+            print(end-start)
             return results_list
         else:
             print('not found')
     else:
         print('error')
+
+async def get_image_data(session, url):
+    call_s = time.perf_counter()
+    async with session.get(url) as response:
+        data = await response.read()
+        call_e = time.perf_counter()
+        print(f"call:{call_e-call_s}")
+        return data
