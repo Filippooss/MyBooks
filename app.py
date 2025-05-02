@@ -12,15 +12,15 @@ class App(tk.Tk):
         screen_height = self.winfo_screenheight()
         print(screen_width)
         self.title("MyBooks")
-        self.geometry(f"420x420+{int(screen_width/2 - 420/2)}+{int(screen_height/2 - 420/2)}")
-        self.minsize(420,420)
+        self.geometry(f"420x420+{int(screen_width/2 - 700/2)}+{int(screen_height/2 - 700/2)}")
+        self.minsize(700,700)
 
         app_icon = tk.PhotoImage(file='./Images/book.png')
         self.iconphoto(True,app_icon)
         self.config()
         
         # main window setup
-
+        
         # menubar
         self.menubar = tk.Menu(self)
         self.config(menu=self.menubar)

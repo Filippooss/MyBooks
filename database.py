@@ -108,7 +108,6 @@ def search_books(title):
             print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[2]}, Έτος: {book[3]}, Εξώφυλλο: {book[4]}")
     else:
         print("Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο. Αναζήτηση στο Google Books API...")
-        fetch_book_from_google_books(title)
         return books
 
 
