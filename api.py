@@ -5,7 +5,8 @@ import asyncio
 import aiohttp
 
 def fetch_book_data(search_data):
-    asyncio.run(api_call(search_data))
+    results_list = asyncio.run(api_call(search_data))
+    return results_list
 
 async def api_call(search_data):
     results_list_data = get_info(search_data)
