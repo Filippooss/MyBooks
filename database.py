@@ -4,9 +4,9 @@ import requests
 def create_database():
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
-    
+
     # 1) Δημιουργία πίνακα χρηστών (User)
-    cursor.execute('''
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -14,13 +14,13 @@ def create_database():
             email TEXT
         )
     ''')
-    
-    # 2) Δημιουργία πίνακα βιβλίων (Books)
-    cursor.execute('''
+
+    # 2) Δημιουργία πίνακα βιβλίων (Books) με τη σωστή στήλη release_year
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books (
             book_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            release_year INTEGER,
+            release_year INTEGER,  -- προστέθηκε η στήλη release_year
             description TEXT,
             author TEXT NOT NULL,
             version TEXT,
@@ -29,7 +29,7 @@ def create_database():
     ''')
 
     # 3) Δημιουργία πίνακα βαθμολογιών (Ratings)
-    cursor.execute('''
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS ratings (
             rating_id INTEGER PRIMARY KEY AUTOINCREMENT,
             value INTEGER CHECK(value BETWEEN 1 AND 5),
@@ -40,7 +40,7 @@ def create_database():
     ''')
 
     # 4) Δημιουργία πίνακα συσχέτισης βιβλίων-βαθμολογιών (Books_Ratings)
-    cursor.execute('''
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books_ratings (
             book_id INTEGER,
             rating_id INTEGER,
@@ -51,7 +51,7 @@ def create_database():
     ''')
 
     # 5) Δημιουργία πίνακα συσχέτισης χρηστών-βιβλίων (User_Book)
-    cursor.execute('''
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS user_book (
             user_id INTEGER,
             book_id INTEGER,
@@ -60,9 +60,10 @@ def create_database():
             FOREIGN KEY (book_id) REFERENCES books(book_id)
         )
     ''')
-    
+
     conn.commit()
     conn.close()
+    print("Η βάση δεδομένων δημιουργήθηκε επιτυχώς!")
 
 def insert_user(username, password):
     conn = sqlite3.connect("mybooks.db")
@@ -75,10 +76,10 @@ def insert_user(username, password):
         print("Το όνομα χρήστη υπάρχει ήδη!")
     conn.close()
 
-def insert_book(title, author, year, image_RAW):
+def insert_book(title, author, year, image):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO books (title, author, year, image_RAW) VALUES (?, ?, ?, ?)", (title, author, year, image_RAW))
+    cursor.execute("INSERT INTO books (title, author, release_year, image) VALUES (?, ?, ?, ?)", (title, author, year, image))
     conn.commit()
     conn.close()
     print("Το βιβλίο προστέθηκε επιτυχώς!")
@@ -96,21 +97,23 @@ def login_user(username, password):
         print("Λάθος όνομα χρήστη ή κωδικός!")
         return False
 
-def search_books(title):
+def search_books(title, page=1, books_per_page=10):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM books WHERE title LIKE ?", ('%' + title + '%',))
+    
+    # Υπολογισμός της αρχής της σελίδας
+    offset = (page - 1) * books_per_page
+    
+    cursor.execute("SELECT * FROM books WHERE title LIKE ? LIMIT ? OFFSET ?", ('%' + title + '%', books_per_page, offset))
     books = cursor.fetchall()
     conn.close()
+    
     if books:
-        print("Βρέθηκαν τα ακόλουθα βιβλία:")
+        print(f"Βρέθηκαν τα ακόλουθα βιβλία για τον τίτλο '{title}' (σελίδα {page}):")
         for book in books:
             print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[2]}, Έτος: {book[3]}, Εξώφυλλο: {book[4]}")
     else:
-        print("Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο. Αναζήτηση στο Google Books API...")
-        fetch_book_from_google_books(title)
-        return books
-
+        print(f"Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο στη σελίδα {page}.")
 
 if __name__ == "__main__":
     create_database()
@@ -124,4 +127,5 @@ if __name__ == "__main__":
     login_user("user1", "password123")
     
     # Δοκιμαστική αναζήτηση βιβλίου
-    search_books("Harry Potter")
+    search_books("Harry Potter", page=1)
+    search_books("Harry Potter", page=2)
