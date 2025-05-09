@@ -8,7 +8,7 @@ from PIL import Image, ImageTk
 
 class SearchResultTemplate(tk.Frame):
 
-    def __init__(self,master,title:str,image_url,author:str,on_event,template_id:int):
+    def __init__(self,master,title:str,image_raw,author:str,on_event,template_id:int):
         super().__init__(master=master)
 
         self.on_event = on_event
@@ -16,12 +16,10 @@ class SearchResultTemplate(tk.Frame):
         #self.grid(row=SearchResultTemplate.index,column=0)
         self.pack(fill="both",padx=2,pady=2)
         self.config(bg="yellow")
-        with urlopen(image_url) as u:
-            raw_data = u.read()
 
         #define style for ttk
 
-        temp = Image.open(io.BytesIO(raw_data))
+        temp = Image.open(io.BytesIO(image_raw))
         self.image = ImageTk.PhotoImage(image=temp)
         #create widgets
         self.cv_image = tk.Canvas(self,width=temp.size[0],height=temp.size[1],borderwidth=0,highlightthickness=0)

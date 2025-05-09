@@ -22,7 +22,7 @@ class LoginView(tk.Frame):
 
         # define widgets
         self.frame = ttk.Frame(self)
-        self.lb_title = ttk.Label(self.frame, text='Login', font=('Arial', 40,'bold'))
+        self.lb_title = ttk.Label(self, text='Login', font=('Arial', 40,'bold'))
         self.lb_username = ttk.Label(self.frame,text='Enter Username' , font=('Arial',10))
         self.entry_username = ttk.Entry(self.frame, textvariable=self.var_username)
         self.lb_password = ttk.Label(self.frame,text='Enter Password',font=('Arial',10))
@@ -38,8 +38,8 @@ class LoginView(tk.Frame):
         self.bind_all('<Return>',lambda event: self.on_enter_pressed(event))
 
         #display
+        self.lb_title.pack(pady=(100,0))
         self.frame.pack(expand=1)
-        self.lb_title.grid(row=0, column=0,columnspan=2)
         self.lb_username.grid(row=1,column=0)
         self.entry_username.grid(row=1, column=1)
         self.lb_password.grid(row=2,column=0)

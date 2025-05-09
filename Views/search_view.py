@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
-from api import get_info
+
+from api import fetch_book_data, get_info
 from Views.CustomWidgets.search_result_template import SearchResultTemplate
 from Views.CustomWidgets.vertical_scrolled_frame import VerticalScrolledFrame
-
 
 
 class SearchView(tk.Frame):
@@ -39,19 +39,20 @@ class SearchView(tk.Frame):
 
 
     def on_search(self):
-        self.search_results = get_info(self.search_bar_text.get())
+        self.search_results = fetch_book_data(self.search_bar_text.get())
         index = 0
         for book in self.search_results:
             titlos = book['Τίτλος']
-            image_url = book['Εξώφυλλο']
+            image_raw = book['Εξώφυλλο']
             author = book["Συγγραφέας"]
 
-            template = SearchResultTemplate(self.vsf_results.f_intirior,titlos,image_url,author,self.on_template_clicked,index)
+            template = SearchResultTemplate(self.vsf_results.f_intirior,titlos,image_raw,author,self.on_template_clicked,index)
 
             index += 1
 
     def on_template_clicked(self,template_id):
-        print(self.search_results[0])
+        #print(self.search_results[0])
+        pass
 
     def on_mouse_wheel(self,event):
         #https://stackoverflow.com/questions/17355902/tkinter-binding-mousewheel-to-scrollbar
