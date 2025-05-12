@@ -15,18 +15,23 @@ def create_database():
         )
     ''')
 
-    # 2) Δημιουργία πίνακα βιβλίων (Books) με τη σωστή στήλη release_year
+    # 2) Δημιουργία πίνακα βιβλίων (Books)
     cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books (
             book_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            release_year INTEGER,  -- προστέθηκε η στήλη release_year
             description TEXT,
             author TEXT NOT NULL,
             version TEXT,
             image BLOB
         )
     ''')
+
+    # ✅ Αν δεν υπάρχει η στήλη release_year, την προσθέτουμε
+    cursor.execute("PRAGMA table_info(books)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if 'release_year' not in columns:
+        cursor.execute("ALTER TABLE books ADD COLUMN release_year INTEGER")
 
     # 3) Δημιουργία πίνακα βαθμολογιών (Ratings)
     cursor.execute(''' 
@@ -97,35 +102,48 @@ def login_user(username, password):
         print("Λάθος όνομα χρήστη ή κωδικός!")
         return False
 
-def search_books(title, page=1, books_per_page=10):
+def search_books(title):
+    conn = sqlite3.connect("mybooks.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM books WHERE title LIKE ?", ('%' + title + '%',))
+    books = cursor.fetchall()
+    conn.close()
+    if books:
+        print("Βρέθηκαν τα ακόλουθα βιβλία:")
+        for book in books:
+            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}, Εξώφυλλο: {book[5]}")
+    else:
+        print("Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο.")
+
+def get_books(page=1, books_per_page=10):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
     
-    # Υπολογισμός της αρχής της σελίδας
     offset = (page - 1) * books_per_page
-    
-    cursor.execute("SELECT * FROM books WHERE title LIKE ? LIMIT ? OFFSET ?", ('%' + title + '%', books_per_page, offset))
+    cursor.execute("SELECT * FROM books LIMIT ? OFFSET ?", (books_per_page, offset))
     books = cursor.fetchall()
     conn.close()
-    
-    if books:
-        print(f"Βρέθηκαν τα ακόλουθα βιβλία για τον τίτλο '{title}' (σελίδα {page}):")
-        for book in books:
-            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[2]}, Έτος: {book[3]}, Εξώφυλλο: {book[4]}")
-    else:
-        print(f"Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο στη σελίδα {page}.")
 
+    if books:
+        print(f"Σελίδα {page} - Βιβλία:")
+        for book in books:
+            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}, Εξώφυλλο: {book[5]}")
+    else:
+        print(f"Δεν υπάρχουν βιβλία στη σελίδα {page}.")
+
+# Εκκίνηση αν τρέχει ως κύριο πρόγραμμα
 if __name__ == "__main__":
     create_database()
-    print("Η βάση δεδομένων δημιουργήθηκε επιτυχώς!")
     
-    # Δοκιμαστική εισαγωγή χρήστη και βιβλίου
+    # Εισαγωγή δοκιμαστικού χρήστη
     insert_user("user1", "password123")
-    insert_book("The Great Gatsby", "F. Scott Fitzgerald", 1925, "https://example.com/gatsby.jpg")
     
+    # Εισαγωγή δοκιμαστικού βιβλίου
+    insert_book("The Great Gatsby", "F. Scott Fitzgerald", 1925, "https://example.com/gatsby.jpg")
+
     # Δοκιμαστική σύνδεση χρήστη
     login_user("user1", "password123")
-    
-    # Δοκιμαστική αναζήτηση βιβλίου
-    search_books("Harry Potter", page=1)
-    search_books("Harry Potter", page=2)
+
+    # Δοκιμαστική αναζήτηση και εμφάνιση βιβλίων
+    search_books("Gatsby")
+    get_books(page=1)
