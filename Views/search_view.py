@@ -1,16 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
-
-from api import fetch_book_data, get_info
+from Models.book_model import Book
+from Views.view import View
+import api 
+import database
 from Views.CustomWidgets.search_result_template import SearchResultTemplate
-from Views.CustomWidgets.vertical_scrolled_frame import VerticalScrolledFrame
+from Views.CustomWidgets.vertical_scrolled_frame import VerticalScrolledFrame,ScrollableFrame
+from Views.CustomWidgets.custom_notebook import CustomNotebook
 
+class SearchView(View):
 
-class SearchView(tk.Frame):
     def __init__(self,master:tk.Misc,view_manager):
-        super().__init__(master=master)
-        self.view_manager = view_manager
-
+        super().__init__(master=master,view_manager=view_manager)
+        self.max_books_display = 10
         self.search_bar_text = tk.StringVar()
         self.list_results = tk.Variable()
         self.search_results:dict = dict()
@@ -21,7 +23,8 @@ class SearchView(tk.Frame):
         self.lb_searchbar = ttk.Label(self.f_top,text='Search Books',font=("Arial"))
         self.entry_searchbar = ttk.Entry(self.f_top,textvariable=self.search_bar_text)
         self.bt_search = ttk.Button(self.f_top,text="Search",command=self.on_search)
-        self.vsf_results = VerticalScrolledFrame(master=self)
+        self.vsf_results = VerticalScrolledFrame(self)
+        
 
 
         #config widgets
@@ -30,29 +33,39 @@ class SearchView(tk.Frame):
         self.entry_searchbar.bind("<KeyRelease>",lambda event: self.on_searchbar_change_callback(event))
 
         #display
-        self.f_top.pack(fill='y',expand=False,side="top")
+        self.f_top.pack(fill='y',expand=0,side="top")
         self.lb_title.grid(row=0,column=0,columnspan=3)
         self.lb_searchbar.grid(row=1,column=0)
         self.entry_searchbar.grid(row=1,column=1)
         self.bt_search.grid(row=1,column=2)
+        #self.tabs.pack(fill='both',expand=1)
         self.vsf_results.pack(fill="both",expand=1)
+
+        #add frames to tabs
+        #self.tabs.add(self.vsf_results,text="Book Results")
+
+        
+        self.check_for_book()
+
 
 
     def on_search(self):
-        self.search_results = fetch_book_data(self.search_bar_text.get())
-        index = 0
-        for book in self.search_results:
-            titlos = book['Τίτλος']
-            image_raw = book['Εξώφυλλο']
-            author = book["Συγγραφέας"]
+        #clear container
+        self.vsf_results.delete_children()
 
-            template = SearchResultTemplate(self.vsf_results.f_intirior,titlos,image_raw,author,self.on_template_clicked,index)
+        #1 search book local
+        self.search_results = database.search_books(self.search_bar_text.get())
+        if len(self.search_results) < 1:
+            #Else search online
+            self.search_results = api.fetch_book_data(self.search_bar_text.get())
+            if len(self.search_results) < 1:
+                return
 
-            index += 1
+        for index,book in enumerate(self.search_results):
+            SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index)
 
-    def on_template_clicked(self,template_id):
-        #print(self.search_results[0])
-        pass
+    def on_template_clicked(self,template_id:int):
+        print(template_id)
 
     def on_mouse_wheel(self,event):
         #https://stackoverflow.com/questions/17355902/tkinter-binding-mousewheel-to-scrollbar
@@ -61,11 +74,25 @@ class SearchView(tk.Frame):
     def on_searchbar_change_callback(self,event):
         pass
 
-    def display_view(self):
+    def _display_view(self):
         self.pack(expand=1,fill="both")
 
-    def destroy_view(self):
-        super().destroy()
+    def check_for_book(self,event=None):
+        def on_retry():
+            pass
+        
+        self.search_results = database.get_books()
+        
+        #prospathia na vri vivlia local
+        if(len(self.search_results) > 0):
+            for index,book in enumerate(self.search_results):
+                    template = SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index)    
+        else:
+            #pername command gia na to ti tha kani sto retry
+            self.vsf_results.show_message("No books",on_retry)
+
+
+
 
 
          

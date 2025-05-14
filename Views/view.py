@@ -7,8 +7,8 @@ class View(tk.Frame):
 
         self._view_manager = view_manager
     
-    def display_view(self):
+    def _display_view(self):
         raise NotImplementedError
 
-    def destroy_view(self):
+    def _destroy_view(self):
         super().destroy()

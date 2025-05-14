@@ -2,19 +2,18 @@ import os
 import tkinter as tk
 from tkinter import ttk
 
+from Views.view import View
 import database
 import Utility.save_manager as save_manager
 
 
-class LoginView(tk.Frame):
+class LoginView(View):
     def __init__(self,master:tk.Misc,view_manager):
-        super().__init__(master=master)
+        super().__init__(master=master,view_manager=view_manager)
 
         user_data = save_manager.load("user")
         app_data = save_manager.load("app") 
         
-        self.view_manager = view_manager
-
         self.var_password = tk.StringVar()
         self.var_username = tk.StringVar()
         self.var_password_info = tk.StringVar()
@@ -68,14 +67,12 @@ class LoginView(tk.Frame):
         self.on_login()
 
     def navigate_to_signup_view(self):
-        self.view_manager.change_view("SignupView")
+        self._view_manager.change_view("SignupView")
     
     #define how this view is going to be displayed
-    def display_view(self):
+    def _display_view(self):
         self.pack(fill='both',expand=1)
     
-    def destroy_view(self):
-        super().destroy()
 
     def on_login(self):
 
@@ -90,13 +87,13 @@ class LoginView(tk.Frame):
                     }
                 save_manager.save(data,"user")
 
-            self.view_manager.change_view("SearchView")
+            self._view_manager.change_view("SearchView")
         else:
             self.lb_password_info.config(foreground="red")
             self.var_password_info.set("Username or Password are incorect")
 
     def on_skip_login(self):
-        self.view_manager.change_view("SearchView")
+        self._view_manager.change_view("SearchView")
 
     def on_save_credentials(self):
         save_data ={
