@@ -31,16 +31,17 @@ class ViewManager:
         if(overide_view != None): self.current_displayed_view = self.view_dick[overide_view](master=self.app,view_manager=self)
         self.current_displayed_view._display_view()
 
-    def change_view(self,new_view):
+    def change_view(self,new_view) -> None:
         """ Destroys current open view and displays the new one """
         #create instase of the new view
  
         temp_view = self.view_dick[new_view](master=self.app,view_manager=self)
         
-
         self.current_displayed_view._destroy_view()
         self.current_displayed_view = temp_view
         self.current_displayed_view._display_view()
+
+        return self.current_displayed_view
 
 
 

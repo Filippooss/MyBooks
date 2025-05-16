@@ -1,7 +1,9 @@
 import json
+from math import fabs
 import os
 from enum import Enum
 import appdirs
+import tempfile
 
 APP_NAME = "MyBooks"
 APP_AUTHOR = "Team2"
@@ -11,8 +13,9 @@ DIRS = {
     "log":appdirs.user_log_dir(APP_NAME,APP_AUTHOR),
     "user":appdirs.user_cache_dir(APP_NAME,APP_AUTHOR)
 }
+temp_file_paths:dict = dict()
 
-def save(save_dict,data_type="app"):
+def save(save_dict:dict, data_type:str = "app"):
     if data_type not in DIRS:
         raise ValueError(f"Unknown data_type '{data_type}'. Use: {list(DIRS)}")
     
@@ -29,6 +32,14 @@ def save(save_dict,data_type="app"):
         print(json_string)
         file.write(json_string)
 
+#https://stackoverflow.com/questions/8577137/how-can-i-create-a-tmp-file-in-python
+def write_temp_file(data:dict,file_key):
+    #print(tempfile.gettempdir())
+    temp_file = tempfile.NamedTemporaryFile(mode="wt",delete=False,prefix=APP_NAME)
+    temp_file.write(json.dumps(data))
+    temp_file.close()
+    temp_file_paths[file_key] = temp_file.name
+    
 def load(data_type="app") -> dict:
     if data_type not in DIRS:
         raise ValueError(f"Unknown data_type '{data_type}'. Use: {list(DIRS)}")
@@ -46,5 +57,26 @@ def load(data_type="app") -> dict:
     except FileNotFoundError:
         return dict()
 
+def read_temp_file(file_key:str,delete_file:bool = True) -> dict:
+    try:
+        with open(temp_file_paths[file_key],mode="rt") as file:
+            
+            data = json.load(file)
+        if delete_file:
+            os.remove(temp_file_paths[file_key])
+        return data
+    
+    except FileNotFoundError:
+        print("File not found")
+        return dict()
+    except KeyError:
+        print("Key not found")
+        return dict()
+
 if __name__ == "__main__":
-    pass
+    #debug
+    write_temp_file({"test":"test"},"test")
+
+    result = read_temp_file("test")
+    print(f"{result}")
+
