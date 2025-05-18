@@ -1,15 +1,15 @@
 import io
 import tkinter as tk
 from tkinter import ttk,StringVar
-from typing import Self
+from Views.CustomWidgets.rating_widget import RatingWidget
 
 from PIL import Image,ImageTk
 from Models.book_model import Book
 from Views.view import View
 
 class BookView(View):
-    def __init__(self,master,view_manager):
-        super().__init__(master=master,view_manager=view_manager)
+    def __init__(self,app,view_manager):
+        super().__init__(app=app,view_manager=view_manager)
     
         self.var_title = StringVar()
         self.var_author = StringVar()
@@ -17,22 +17,29 @@ class BookView(View):
         self.var_description = StringVar()
 
         #define widgets
-        self.f_right = ttk.Frame(self)
+        self.f_horizontal = tk.Frame(self)
+        self.f_right = tk.Frame(self.f_horizontal)
+        self.f_left = tk.Frame(self.f_horizontal)
         self.lb_title = tk.Label(self.f_right,textvariable=self.var_title, font=("Arial",30))
         self.lb_author = tk.Label(self.f_right,textvariable=self.var_author)
         self.lb_publisher = tk.Label(self.f_right,textvariable=self.var_publisher)
         self.lb_description = tk.Label(self.f_right,textvariable=self.var_description)
-        self.cv_image = tk.Canvas(self)
+        self.cv_image = tk.Canvas(self.f_left,width=400,height=550)
         self.bt_back = ttk.Button(self,text="Back",command=self.on_back)
+        self.rating_widget = RatingWidget(self.f_left)
 
         #display widgets
         self.lb_title.pack()
+        self.f_horizontal.pack(fill="both",expand=1)
+        self.f_left.pack(side="left",fill="both",expand=0)  
+        self.f_right.pack(side="left",fill="both",expand=0)
         self.bt_back.pack(side="top",anchor="w")
-        self.cv_image.pack(side="left")
-        self.f_right.pack(side="left",fill="none",expand=0)
+        self.cv_image.pack(fill="none",expand=0)
         self.lb_author.pack()
         self.lb_publisher.pack()
         self.lb_description.pack()
+
+        self.rating_widget.pack()
 
     def on_back(self):
         self._view_manager.change_view("SearchView")
@@ -53,7 +60,7 @@ class BookView(View):
         self.var_description.set("Description vivliou sdfisdufiodshfgiuklsdfahgkjsdfhlak")
         
         temp = Image.open(io.BytesIO(book_model.image_raw))
-        temp = temp.resize((135,200))
+        temp = temp.resize((400,550))
         self.image = ImageTk.PhotoImage(image=temp)
         self.cv_image.create_image(0,0,image=self.image,anchor="nw")
 

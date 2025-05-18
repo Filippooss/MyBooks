@@ -14,8 +14,8 @@ from Views.view import View
 
 
 class AddBookView(View):
-    def __init__(self,master,view_manager):
-        super().__init__(master=master,view_manager=view_manager)
+    def __init__(self,app,view_manager):
+        super().__init__(app=app,view_manager=view_manager)
         
         
 

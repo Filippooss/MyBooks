@@ -1,5 +1,4 @@
 import tkinter as tk
-from json import load
 from tkinter import ttk
 
 import api
@@ -18,8 +17,8 @@ from Views.view import View
 
 class SearchView(View):
     SAVE_KEY = "searchview"
-    def __init__(self,master:tk.Misc,view_manager):
-        super().__init__(master=master,view_manager=view_manager)
+    def __init__(self,app:tk.Misc,view_manager):
+        super().__init__(app=app,view_manager=view_manager)
         self.max_books_display = 10
         self.var_search_bar = tk.StringVar()
         #self.list_results = tk.Variable()
@@ -37,7 +36,7 @@ class SearchView(View):
 
 
         #config widgets
-        self.bind_all('<MouseWheel>',lambda event : self.on_mouse_wheel(event))
+        self.bind('<MouseWheel>',lambda event : self.on_mouse_wheel(event))
 
         self.entry_searchbar.bind("<KeyRelease>",lambda event: self.on_searchbar_change_callback(event))
 
@@ -114,6 +113,10 @@ class SearchView(View):
 
     def _display_view(self):
         self.pack(expand=1,fill="both")
+
+    def _destroy_view(self):
+        self.unbind("<KeyRelease>")
+        return super()._destroy_view()
 
     def check_for_book(self,event=None):
         def on_retry():

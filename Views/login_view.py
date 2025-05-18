@@ -1,19 +1,19 @@
-import os
 import tkinter as tk
 from tkinter import ttk
-
+from Models.user_model import User
 from Views.view import View
 import database
 import Utility.save_manager as save_manager
 
 
 class LoginView(View):
-    def __init__(self,master:tk.Misc,view_manager):
-        super().__init__(master=master,view_manager=view_manager)
+    def __init__(self,app,view_manager):
+        super().__init__(app=app,view_manager=view_manager)
 
         user_data = save_manager.load("user")
         app_data = save_manager.load("app") 
-        
+        self.app = app
+
         self.var_password = tk.StringVar()
         self.var_username = tk.StringVar()
         self.var_password_info = tk.StringVar()
@@ -86,7 +86,8 @@ class LoginView(View):
                     "password":self.var_password.get()
                     }
                 save_manager.save(data,"user")
-
+            
+            self.app.set_current_user(User(self.var_username.get(),self.var_password.get()))
             self._view_manager.change_view("SearchView")
         else:
             self.lb_password_info.config(foreground="red")

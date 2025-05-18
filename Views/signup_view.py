@@ -1,4 +1,3 @@
-from email import message
 import tkinter as tk
 from tkinter import ttk,StringVar
 from Views.view import View
@@ -7,8 +6,8 @@ from Views.CustomWidgets.entry_with_text import EntryWithText
 
 
 class SignupView(View):
-    def __init__(self,master:tk.Misc,view_manager):
-        super().__init__(master=master,view_manager=view_manager)
+    def __init__(self,app:tk.Misc,view_manager):
+        super().__init__(app=app,view_manager=view_manager)
 
         self.is_password_valid:bool = False
         self.is_username_valid:bool = False

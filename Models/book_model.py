@@ -1,5 +1,4 @@
 import base64
-import json
 
 class Book:
     def __init__(self,id,title,author,publisher,release_year,description,version,image_raw):

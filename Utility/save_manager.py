@@ -1,5 +1,4 @@
 import json
-from math import fabs
 import os
 from enum import Enum
 import appdirs
