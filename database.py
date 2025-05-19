@@ -5,7 +5,7 @@ def create_database():
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
 
-    # 1) Δημιουργία πίνακα χρηστών (User)
+    # 1) Δημιουργία πίνακα χρηστών (users)
     cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,7 +15,7 @@ def create_database():
         )
     ''')
 
-    # 2) Δημιουργία πίνακα βιβλίων (Books)
+    # 2) Δημιουργία πίνακα βιβλίων (books)
     cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books (
             book_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,13 +27,13 @@ def create_database():
         )
     ''')
 
-    # ✅ Αν δεν υπάρχει η στήλη release_year, την προσθέτουμε
+    # Αν δεν υπάρχει η στήλη release_year, την προσθέτουμε
     cursor.execute("PRAGMA table_info(books)")
     columns = [col[1] for col in cursor.fetchall()]
     if 'release_year' not in columns:
         cursor.execute("ALTER TABLE books ADD COLUMN release_year INTEGER")
 
-    # 3) Δημιουργία πίνακα βαθμολογιών (Ratings)
+    # 3) Δημιουργία πίνακα βαθμολογιών (ratings)
     cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS ratings (
             rating_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +44,7 @@ def create_database():
         )
     ''')
 
-    # 4) Δημιουργία πίνακα συσχέτισης βιβλίων-βαθμολογιών (Books_Ratings)
+    # 4) Δημιουργία πίνακα συσχέτισης βιβλίων-βαθμολογιών (books_ratings)
     cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books_ratings (
             book_id INTEGER,
@@ -55,7 +55,7 @@ def create_database():
         )
     ''')
 
-    # 5) Δημιουργία πίνακα συσχέτισης χρηστών-βιβλίων (User_Book)
+    # 5) Δημιουργία πίνακα συσχέτισης χρηστών-βιβλίων (user_book)
     cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS user_book (
             user_id INTEGER,
@@ -131,19 +131,57 @@ def get_books(page=1, books_per_page=10):
     else:
         print(f"Δεν υπάρχουν βιβλία στη σελίδα {page}.")
 
-# Εκκίνηση αν τρέχει ως κύριο πρόγραμμα
+def add_rating(username, book_id, value, comment):
+    conn = sqlite3.connect("mybooks.db")
+    cursor = conn.cursor()
+
+    cursor.execute("INSERT INTO ratings (value, comment, username) VALUES (?, ?, ?)", (value, comment, username))
+    rating_id = cursor.lastrowid
+
+    cursor.execute("INSERT INTO books_ratings (book_id, rating_id) VALUES (?, ?)", (book_id, rating_id))
+
+    conn.commit()
+    conn.close()
+    print("Η βαθμολογία προστέθηκε επιτυχώς!")
+
+def get_book_ratings(book_title):
+    conn = sqlite3.connect("mybooks.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT book_id FROM books WHERE title = ?", (book_title,))
+    result = cursor.fetchone()
+    if not result:
+        print("Δεν βρέθηκε βιβλίο με αυτόν τον τίτλο.")
+        conn.close()
+        return
+
+    book_id = result[0]
+    cursor.execute("""
+        SELECT r.value, r.comment, r.username
+        FROM ratings r
+        JOIN books_ratings br ON r.rating_id = br.rating_id
+        WHERE br.book_id = ?
+    """, (book_id,))
+    ratings = cursor.fetchall()
+    conn.close()
+
+    if ratings:
+        print(f"Βαθμολογίες για το βιβλίο: {book_title}")
+        for r in ratings:
+            print(f"Βαθμός: {r[0]}, Σχόλιο: {r[1]}, Χρήστης: {r[2]}")
+    else:
+        print("Δεν υπάρχουν βαθμολογίες για αυτό το βιβλίο.")
+
 if __name__ == "__main__":
     create_database()
-    
-    # Εισαγωγή δοκιμαστικού χρήστη
+
     insert_user("user1", "password123")
-    
-    # Εισαγωγή δοκιμαστικού βιβλίου
     insert_book("The Great Gatsby", "F. Scott Fitzgerald", 1925, "https://example.com/gatsby.jpg")
 
-    # Δοκιμαστική σύνδεση χρήστη
     login_user("user1", "password123")
 
-    # Δοκιμαστική αναζήτηση και εμφάνιση βιβλίων
     search_books("Gatsby")
     get_books(page=1)
+
+    add_rating("user1", 1, 5, "Καταπληκτικό βιβλίο!")
+    get_book_ratings("The Great Gatsby")
