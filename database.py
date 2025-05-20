@@ -204,10 +204,9 @@ if __name__ == "__main__":
     create_database()
 
     insert_user("user1", "password123")
-<<<<<<< HEAD
+
     insert_book("The Great Gatsby", "F. Scott Fitzgerald", 1925, "https://example.com/gatsby.jpg")
-=======
->>>>>>> 05ae707fc411791668694517bf0bd23084c6611b
+
 
     login_user("user1", "password123")
 
