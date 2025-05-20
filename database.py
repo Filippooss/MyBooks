@@ -1,5 +1,8 @@
 import sqlite3
-import requests
+
+
+from api import Book
+
 
 def create_database():
     conn = sqlite3.connect("mybooks.db")
@@ -81,10 +84,10 @@ def insert_user(username, password):
         print("Το όνομα χρήστη υπάρχει ήδη!")
     conn.close()
 
-def insert_book(title, author, year, image):
+def insert_book(book_model:Book):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO books (title, author, release_year, image) VALUES (?, ?, ?, ?)", (title, author, year, image))
+    cursor.execute("INSERT INTO books (title, author, release_year, image) VALUES (?, ?, ?, ?)", (book_model.title, book_model.author, book_model.release_year, book_model.image_raw))
     conn.commit()
     conn.close()
     print("Το βιβλίο προστέθηκε επιτυχώς!")
@@ -108,11 +111,24 @@ def search_books(title):
     cursor.execute("SELECT * FROM books WHERE title LIKE ?", ('%' + title + '%',))
     books = cursor.fetchall()
     conn.close()
+    book_models=[]
     if books:
         print("Βρέθηκαν τα ακόλουθα βιβλία:")
         for book in books:
+            book_model = Book(id=book[0], 
+                              title= book[1], 
+                              description=book[2], 
+                              author= book[3], 
+                              version=book[4], 
+                              image_raw=book[5], 
+                              release_year=book[6],
+                              publisher=""
+                              )
+            book_models.append(book_model)
             print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}, Εξώφυλλο: {book[5]}")
+        return book_models
     else:
+        return list()
         print("Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο.")
 
 def get_books(page=1, books_per_page=10):
@@ -123,13 +139,25 @@ def get_books(page=1, books_per_page=10):
     cursor.execute("SELECT * FROM books LIMIT ? OFFSET ?", (books_per_page, offset))
     books = cursor.fetchall()
     conn.close()
-
+    book_models=[]
     if books:
         print(f"Σελίδα {page} - Βιβλία:")
         for book in books:
+            book_model = Book(id=book[0], 
+                              title= book[1], 
+                              description=book[2], 
+                              author= book[3], 
+                              version=book[4], 
+                              image_raw=book[5], 
+                              release_year=book[6],
+                              publisher=""
+                              )
+            book_models.append(book_model)
             print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}, Εξώφυλλο: {book[5]}")
+        return book_models
     else:
         print(f"Δεν υπάρχουν βιβλία στη σελίδα {page}.")
+        return list()
 
 def add_rating(username, book_id, value, comment):
     conn = sqlite3.connect("mybooks.db")
@@ -176,7 +204,10 @@ if __name__ == "__main__":
     create_database()
 
     insert_user("user1", "password123")
+<<<<<<< HEAD
     insert_book("The Great Gatsby", "F. Scott Fitzgerald", 1925, "https://example.com/gatsby.jpg")
+=======
+>>>>>>> 05ae707fc411791668694517bf0bd23084c6611b
 
     login_user("user1", "password123")
 

@@ -1,4 +1,5 @@
 import tkinter as tk
+from Models.user_model import User
 from Utility.view_manager import ViewManager
 
 class App(tk.Tk):
@@ -6,7 +7,7 @@ class App(tk.Tk):
         super().__init__()
 
         self.view_manager = ViewManager(self)
-
+        self.user:User = None
         #configure the root window
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
@@ -39,6 +40,9 @@ class App(tk.Tk):
     
     def on_add_book(self):
         self.view_manager.change_view("AddBookView")
+
+    def set_current_user(self,user:User):
+        self.user = user
 
 if __name__ == "__main__":
     app = App()

@@ -1,9 +1,12 @@
+import io
 import tkinter as tk
+from email.mime import image
 from tkinter import filedialog as fd
 from tkinter import ttk
 
 from PIL import Image, ImageTk
 
+from Models.book_model import Book
 import database
 from Views.CustomWidgets.datepicker_with_text import DatepickerWithText
 from Views.CustomWidgets.entry_with_text import EntryWithText
@@ -11,8 +14,8 @@ from Views.view import View
 
 
 class AddBookView(View):
-    def __init__(self,master,view_manager):
-        super().__init__(master=master,view_manager=view_manager)
+    def __init__(self,app,view_manager):
+        super().__init__(app=app,view_manager=view_manager)
         
         
 
@@ -28,10 +31,11 @@ class AddBookView(View):
         self.txt_discription =tk.Text(self.f_right,height=8)
 
         self.f_left = tk.Frame(self.f_horizontal,background='red')
-        self.bt_impor_image = ttk.Button(self.f_left,text="Import Book Cover",command=self.on_import_cover_image) 
-        self.cv_image = tk.Canvas(self.f_left,borderwidth=0,highlightthickness=0,width=550,height=900,bg='blue')
+        self.bt_import_image = ttk.Button(self.f_left,text="Import Book Cover",command=self.on_import_cover_image) 
+        self.bt_no_image = ttk.Button(self.f_left,text="No Image",command=self.on_no_image)
+        self.cv_image = tk.Canvas(self.f_left,borderwidth=0,highlightthickness=0,width=450,height=600,bg='blue')
 
-        self.bt_add_book = ttk.Button(self,text="Add New Book",command=self.on_add_book)
+        self.bt_add_book = ttk.Button(self.f_right,text="Add New Book",command=self.on_add_book)
 
 
         
@@ -49,35 +53,59 @@ class AddBookView(View):
         self.txt_discription.pack(pady=(0,10))
         
         self.cv_image.pack(anchor='w',expand=1,fill="both")
-        self.bt_impor_image.pack(anchor="w")
+        self.bt_import_image.pack(side="left",anchor="center")
+        self.bt_no_image.pack(side="left",anchor='center')
 
-        self.bt_add_book.pack(anchor="center")
+        self.bt_add_book.pack()
 
     def on_add_book(self):
-
         #image_raw
+        buffer = io.BytesIO()
+        self.image.save(buffer,format="PNG")
+        
+        book = Book(
+            id=0,
+            title=self.ewt_book_title.get_value(),
+            author=self.ewt_book_author.get_value(),
+            description=self.txt_discription.get("1.0",tk.END),
+            image_raw=buffer.getvalue(),
+            release_year=self.dp_book_release.get_date_value(),
+            version=-1,
+            publisher="abc",
+        )
+        database.insert_book(book)
+        #TODO: elenxos an i kataxorisi itan epitixis kai meta alagi tou view
+        self._view_manager.change_view("LoginView")
+                             
 
-        database.insert_book(self.ewt_book_title.get_value(),
-                             self.ewt_book_author.get_value(),
-                             self.dp_book_release.get_date_value(),
-                             ""
-                             )
+    def on_no_image(self):
+        image_path = ".\Images\TheSumofAllThings_cover.jpg"
+
+        self.image:Image = Image.open(image_path)
+        self.image = self.image.resize((450,600))
+        self.tk_image  = ImageTk.PhotoImage(self.image)
+        
+        self.cv_image.create_image(0,0,anchor="nw",image=self.tk_image)
 
     def on_import_cover_image(self):
         image_path:str = fd.askopenfilename(title="Import Book Cover",filetypes=(("png files","*.png"),("jpeg files","*.jpeg"),("jpg files","*.jpg")),initialdir='/')
-        print(image_path)
+        
 
         if image_path == "":
+            print("No cover")
             return
 
-        image:Image = Image.open(image_path)
-        image = image.resize((550,900))
-        self.tk_image  = ImageTk.PhotoImage(image)
+        self.image:Image = Image.open(image_path)
+        self.image = self.image.resize((450,600))
+        self.tk_image  = ImageTk.PhotoImage(self.image)
 
         #self.cv_image.config(width=image.size[0],height=image.size[1])
         #self.cv_image.config(width=500,height=500)
         self.cv_image.create_image(0,0,anchor="nw",image=self.tk_image)
 
 
-    def display_view(self):
+    def _display_view(self):
         self.pack(expand=True,fill="both")
+
+    def _destroy_view(self):
+        return super()._destroy_view()

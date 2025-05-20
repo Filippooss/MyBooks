@@ -2,13 +2,13 @@ import tkinter as tk
 
 
 class View(tk.Frame):
-    def __init__(self, master,view_manager):
-        super().__init__(master=master)
+    def __init__(self, app,view_manager):
+        super().__init__(master=app)
 
         self._view_manager = view_manager
     
-    def display_view(self):
+    def _display_view(self):
         raise NotImplementedError
 
-    def destroy_view(self):
+    def _destroy_view(self):
         super().destroy()

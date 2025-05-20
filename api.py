@@ -4,9 +4,24 @@ import time
 import asyncio
 import aiohttp
 
+from Views.book_view import Book
+
 def fetch_book_data(search_data):
     results_list = asyncio.run(api_call(search_data))
-    return results_list
+    books = []
+    for result in results_list:
+        book = Book(
+            id=0,
+            title=result["Τίτλος"],
+            author=result["Συγγραφέας"],
+            publisher=result["Εκδότης"],
+            release_year=result["Έτος έκδοσης"],
+            description=result["Περιγραφή"],
+            image_raw=result["Εξώφυλλο"],
+            version=1
+        )
+        books.append(book)
+    return books
 
 async def api_call(search_data):
     results_list_data = get_info(search_data)
