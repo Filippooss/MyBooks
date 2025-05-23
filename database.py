@@ -15,7 +15,7 @@ def create_database():
         )
     ''')
 
-    # 2) Δημιουργία πίνακα βιβλίων (books)
+    # 2) Δημιουργία πίνακα βιβλίων (books) 
     cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books (
             book_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,15 +23,10 @@ def create_database():
             description TEXT,
             author TEXT NOT NULL,
             version TEXT,
-            image BLOB
+            image BLOB,
+            release_year INTEGER
         )
     ''')
-
-    # Έλεγχος και προσθήκη της στήλης release_year, αν δεν υπάρχει
-    cursor.execute("PRAGMA table_info(books)")
-    columns = [col[1] for col in cursor.fetchall()]
-    if 'release_year' not in columns:
-        cursor.execute("ALTER TABLE books ADD COLUMN release_year INTEGER")
 
     # 3) Δημιουργία πίνακα βαθμολογιών (ratings)
     cursor.execute(''' 
@@ -208,7 +203,6 @@ if __name__ == "__main__":
     create_database()
 
     insert_user("user1", "password123")
-
     login_user("user1", "password123")
 
     search_books("Gatsby")
@@ -216,4 +210,3 @@ if __name__ == "__main__":
 
     add_rating("user1", 1, 5, "Καταπληκτικό βιβλίο!")
     get_book_ratings("The Great Gatsby")
-    
