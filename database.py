@@ -25,6 +25,7 @@ def create_database():
             version TEXT,
             image BLOB,
             release_year INTEGER
+            publisher TEXT
         )
     ''')
 
