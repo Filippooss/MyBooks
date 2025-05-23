@@ -1,6 +1,7 @@
 import tkinter as tk
 from Models.user_model import User
 from Utility.view_manager import ViewManager
+import database
 
 class App(tk.Tk):
     def __init__(self):
@@ -46,5 +47,6 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
     app = App()
+    database.create_database()
     #run
     app.mainloop()
