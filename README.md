@@ -1,3 +1,3 @@
 # MyBooks
 
-A book manager app that will allow you to save your favoratite books and search new ones.
+A book manager app that will allow you to save your favorite books and search new ones.
