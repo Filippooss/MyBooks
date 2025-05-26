@@ -6,7 +6,7 @@ from Views.CustomWidgets.entry_with_text import EntryWithText
 
 
 class SignupView(View):
-    def __init__(self,app:tk.Misc,view_manager):
+    def __init__(self,app:tk.Misc,view_manager,args):
         super().__init__(app=app,view_manager=view_manager)
 
         self.is_password_valid:bool = False
@@ -56,7 +56,7 @@ class SignupView(View):
         else:
             print("Cant sign up")
     def on_username_change_callback(self,*args):
-        self.is_username_valid == False if len(self.var_username.get()) == 0 else True
+        self.is_username_valid = False if len(self.var_username.get()) == 0 else True
        
     def on_password_change_callback(self,*args):
         def hide_message():

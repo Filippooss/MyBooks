@@ -1,21 +1,29 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
+
 import database
 
-class RatingWidget(tk.Frame):
-    def __init__(self, master):
-        super().__init__(master=master)
 
+class RatingWidget(tk.Frame):
+    def __init__(self, master,book,username:str):
+        super().__init__(master=master)
+        self.book = book
+        self.username = username
         self.rating = 0
         self.stars = []
 
+        #define widgets
         self.lb_title = tk.Label(self,text="Rate this book",font=("Arial",14))
         self.f_stars= tk.Frame(self)
-        self.submit_button = tk.Button(self, text="Submit", command=self.submit_rating)
+        self.submit_button = ttk.Button(self, text="Submit", command=self.submit_rating)
+        self.lb_comment = tk.Label(self,text="Commend:")
+        self.comment_box = tk.Text(self,height=8)
 
 
         self.lb_title.pack(pady=10)
         self.f_stars.pack()
+        self.lb_comment.pack(anchor="w")
+        self.comment_box.pack()
 
         for i in range(5):
             star = tk.Label(self.f_stars, text="☆", font=("Arial", 30), cursor="hand2")
@@ -40,9 +48,20 @@ class RatingWidget(tk.Frame):
         self.on_leave(None)
 
     def submit_rating(self):
+        
+
         if self.rating == 0:
             messagebox.showwarning("No Rating", "Please select a rating before submitting.")
         else:
-            messagebox.showinfo(f"You rated this book {self.rating} out of 5.")
-            #apothikeusi tou rating
+            messagebox.showinfo("",f"You rate this book {self.rating} out of 5.")
+            comment_text = self.comment_box.get("1.0", tk.END).strip()
+            database.add_rating(book_id=self.book.id,
+                                username=self.username,
+                                value=self.rating,
+                                comment=comment_text)
+        
+        #clear fields
+        self.comment_box.delete("1.0", tk.END)
+        self.rating = 0
+        self.stars = []
             

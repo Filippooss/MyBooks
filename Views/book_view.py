@@ -1,20 +1,25 @@
 import io
 import tkinter as tk
-from tkinter import ttk,StringVar
-from Views.CustomWidgets.rating_widget import RatingWidget
+from tkinter import StringVar, ttk
 
-from PIL import Image,ImageTk
+from PIL import Image, ImageTk
+from numpy.random import f
+
 from Models.book_model import Book
+from Views.CustomWidgets.rating_widget import RatingWidget
+from Views.CustomWidgets.rating_canvas import RatingCanvas
 from Views.view import View
 
+
 class BookView(View):
-    def __init__(self,app,view_manager):
+    def __init__(self,app,view_manager,args:dict):
         super().__init__(app=app,view_manager=view_manager)
-    
-        self.var_title = StringVar()
-        self.var_author = StringVar()
-        self.var_publisher = StringVar()
-        self.var_description = StringVar()
+
+        self.book_model = args["book"]
+        self.var_title = StringVar(value=f"Title: {self.book_model.title}")
+        self.var_author = StringVar(value=f"Author: {self.book_model.author}")
+        self.var_publisher = StringVar(value=f"Publisher: {self.book_model.publisher}")
+        self.var_description = StringVar(value=f"Description: {self.book_model.description}")
 
         #define widgets
         self.f_horizontal = tk.Frame(self)
@@ -26,7 +31,8 @@ class BookView(View):
         self.lb_description = tk.Label(self.f_right,textvariable=self.var_description)
         self.cv_image = tk.Canvas(self.f_left,width=400,height=550)
         self.bt_back = ttk.Button(self,text="Back",command=self.on_back)
-        self.rating_widget = RatingWidget(self.f_left)
+        self.rating_widget = RatingWidget(self.f_left,self.book_model,username=self._app.user.username)
+        self.rating_canvas = RatingCanvas(self,self.book_model.title)
 
         #display widgets
         self.lb_title.pack()
@@ -38,31 +44,21 @@ class BookView(View):
         self.lb_author.pack()
         self.lb_publisher.pack()
         self.lb_description.pack()
-
+        self.rating_canvas.pack(side="right")
+        
         self.rating_widget.pack()
+
+        #set image
+        temp = Image.open(io.BytesIO(self.book_model.image_raw))
+        temp = temp.resize((400,550))
+        self.image = ImageTk.PhotoImage(image=temp)
+        self.cv_image.create_image(0,0,image=self.image,anchor="nw")
 
     def on_back(self):
         self._view_manager.change_view("SearchView")
     
     def _display_view(self):
         self.pack(fill="both",expand=1)
-
-    def set_book_model(self,book_model:Book):
-        self.book_model = book_model
-
-        # self.var_title.set(book_model.title)
-        # self.var_author.set(book_model.author)
-        # self.var_publisher.set(book_model.publisher)
-        # self.var_description.set(book_model.description)
-        self.var_title.set("Titlos vivliou")
-        self.var_author.set("Author vivliou")
-        self.var_publisher.set("Publisher vivliou")
-        self.var_description.set("Description vivliou sdfisdufiodshfgiuklsdfahgkjsdfhlak")
-        
-        temp = Image.open(io.BytesIO(book_model.image_raw))
-        temp = temp.resize((400,550))
-        self.image = ImageTk.PhotoImage(image=temp)
-        self.cv_image.create_image(0,0,image=self.image,anchor="nw")
 
 
 if __name__ == "__main__":

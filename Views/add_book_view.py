@@ -1,6 +1,5 @@
 import io
 import tkinter as tk
-from email.mime import image
 from tkinter import filedialog as fd
 from tkinter import ttk
 
@@ -14,7 +13,7 @@ from Views.view import View
 
 
 class AddBookView(View):
-    def __init__(self,app,view_manager):
+    def __init__(self,app,view_manager,args):
         super().__init__(app=app,view_manager=view_manager)
         
         
@@ -73,7 +72,7 @@ class AddBookView(View):
             version=-1,
             publisher="abc",
         )
-        database.insert_book(book)
+        database.insert_book(book,self._app.user.username)
         #TODO: elenxos an i kataxorisi itan epitixis kai meta alagi tou view
         self._view_manager.change_view("LoginView")
                              
@@ -81,8 +80,8 @@ class AddBookView(View):
     def on_no_image(self):
         image_path = ".\Images\TheSumofAllThings_cover.jpg"
 
-        self.image:Image = Image.open(image_path)
-        self.image = self.image.resize((450,600))
+        temp_emage = Image.open(image_path)
+        self.image = temp_emage.resize((450,600))
         self.tk_image  = ImageTk.PhotoImage(self.image)
         
         self.cv_image.create_image(0,0,anchor="nw",image=self.tk_image)
@@ -95,8 +94,8 @@ class AddBookView(View):
             print("No cover")
             return
 
-        self.image:Image = Image.open(image_path)
-        self.image = self.image.resize((450,600))
+        book_cover = Image.open(image_path)
+        self.image = book_cover.resize((450,600), resample=Image.Resampling.LANCZOS)
         self.tk_image  = ImageTk.PhotoImage(self.image)
 
         #self.cv_image.config(width=image.size[0],height=image.size[1])

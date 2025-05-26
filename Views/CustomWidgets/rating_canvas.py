@@ -1,12 +1,19 @@
-import database
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter as tk
+import database
 
-class RatingCanvas:
+
+class RatingCanvas(tk.Frame):
     def __init__(self, master, title):
+        super().__init__(master=master)
         self.book_ratings = []
         self.get_ratings(title)
-        self.plot_ratings(master)
+
+        canvas = FigureCanvasTkAgg(self.plot_ratings(), master=master)
+        canvas.draw()
+
+        canvas.get_tk_widget().pack()
 
     def get_ratings(self, title):
         ratings = database.get_book_ratings(title)
@@ -32,9 +39,7 @@ class RatingCanvas:
         self.book_ratings.append(sum4)
         self.book_ratings.append(sum5)
 
-    def plot_ratings(self, master):
+    def plot_ratings(self):
         fig, plot1 = plt.subplots(figsize=(2.5, 1))
         plot1.bar(['1', '2', '3','4','5'], self.book_ratings)
-        canvas = FigureCanvasTkAgg(fig, master=master)
-        canvas.draw()
-        canvas.get_tk_widget().pack()
+        return fig

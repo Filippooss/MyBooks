@@ -7,7 +7,7 @@ import Utility.save_manager as save_manager
 
 
 class LoginView(View):
-    def __init__(self,app,view_manager):
+    def __init__(self,app,view_manager,args):
         super().__init__(app=app,view_manager=view_manager)
 
         user_data = save_manager.load("user")
@@ -88,6 +88,7 @@ class LoginView(View):
                 save_manager.save(data,"user")
             
             self.app.set_current_user(User(self.var_username.get(),self.var_password.get()))
+            self._app.enable_add_book()
             self._view_manager.change_view("SearchView")
         else:
             self.lb_password_info.config(foreground="red")
