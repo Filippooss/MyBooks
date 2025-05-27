@@ -5,8 +5,8 @@ def create_database():
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
 
-    # Πίνακας χρηστών
-    cursor.execute('''
+    # 1) Δημιουργία πίνακα χρηστών (users)
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -15,8 +15,8 @@ def create_database():
         )
     ''')
 
-    # Πίνακας βιβλίων
-    cursor.execute('''
+    # 2) Δημιουργία πίνακα βιβλίων (books)
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books (
             book_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -29,8 +29,8 @@ def create_database():
         )
     ''')
 
-    # Πίνακας βαθμολογιών
-    cursor.execute('''
+    # 3) Δημιουργία πίνακα βαθμολογιών (ratings)
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS ratings (
             rating_id INTEGER PRIMARY KEY AUTOINCREMENT,
             value INTEGER CHECK(value BETWEEN 1 AND 5),
@@ -40,8 +40,8 @@ def create_database():
         )
     ''')
 
-    # Συσχέτιση βιβλίων-βαθμολογιών
-    cursor.execute('''
+    # 4) Δημιουργία πίνακα συσχέτισης βιβλίων-βαθμολογιών (books_ratings)
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS books_ratings (
             book_id INTEGER,
             rating_id INTEGER,
@@ -51,8 +51,8 @@ def create_database():
         )
     ''')
 
-    # Συσχέτιση χρηστών-βιβλίων
-    cursor.execute('''
+    # 5) Δημιουργία πίνακα συσχέτισης χρηστών-βιβλίων (user_book)
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS user_book (
             user_id INTEGER,
             book_id INTEGER,
@@ -77,39 +77,38 @@ def insert_user(username, password):
         print("Το όνομα χρήστη υπάρχει ήδη!")
     conn.close()
 
-def get_user_id(username):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
-    result = cursor.fetchone()
-    conn.close()
-    return result[0] if result else None
-
-def insert_book(book_model: Book, username):
+def insert_book(book_model: Book, username: str):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
 
-    cursor.execute(
-        "INSERT INTO books (title, description, author, version, image, release_year, publisher) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (
-            book_model.title,
-            book_model.description,
-            book_model.author,
-            book_model.version,
-            book_model.image_raw,
-            book_model.release_year,
-            book_model.publisher
-        )
-    )
+    # Εισαγωγή βιβλίου
+    cursor.execute("""
+        INSERT INTO books (title, description, author, version, image, release_year, publisher) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        book_model.title,
+        book_model.description,
+        book_model.author,
+        book_model.version,
+        book_model.image_raw,
+        book_model.release_year,
+        book_model.publisher
+    ))
     book_id = cursor.lastrowid
 
-    user_id = get_user_id(username)
-    if user_id:
+    # Εύρεση user_id από το username
+    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
+    user_row = cursor.fetchone()
+    if user_row:
+        user_id = user_row[0]
+        # Συσχέτιση με τον πίνακα user_book
         cursor.execute("INSERT INTO user_book (user_id, book_id) VALUES (?, ?)", (user_id, book_id))
+        conn.commit()
+        print("Το βιβλίο προστέθηκε επιτυχώς και συνδέθηκε με τον χρήστη!")
+    else:
+        print("Ο χρήστης δεν βρέθηκε. Δεν έγινε συσχέτιση βιβλίου.")
 
-    conn.commit()
     conn.close()
-    print("Το βιβλίο προστέθηκε επιτυχώς!")
 
 def login_user(username, password):
     conn = sqlite3.connect("mybooks.db")
@@ -124,16 +123,24 @@ def login_user(username, password):
         print("Λάθος όνομα χρήστη ή κωδικός!")
         return False
 
-def search_books(title, username):
+def search_books(title: str, username: str):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
-    cursor.execute('''
-        SELECT b.*
-        FROM books b
+
+    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        print("Ο χρήστης δεν βρέθηκε.")
+        conn.close()
+        return []
+
+    user_id = user_row[0]
+    cursor.execute("""
+        SELECT b.* FROM books b
         JOIN user_book ub ON b.book_id = ub.book_id
-        JOIN users u ON ub.user_id = u.user_id
-        WHERE u.username = ? AND b.title LIKE ?
-    ''', (username, '%' + title + '%'))
+        WHERE ub.user_id = ? AND b.title LIKE ?
+    """, (user_id, '%' + title + '%'))
+
     books = cursor.fetchall()
     conn.close()
 
@@ -152,25 +159,32 @@ def search_books(title, username):
                 publisher=book[7]
             )
             book_models.append(book_model)
-            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}, Εκδότης: {book[7]}")
+            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}")
         return book_models
     else:
-        print("Δεν βρέθηκε κάποιο βιβλίο με αυτόν τον τίτλο.")
+        print("Δεν βρέθηκε κάποιο βιβλίο.")
         return []
 
-def get_books(username, page=1, books_per_page=10):
+def get_books(username: str, page=1, books_per_page=10):
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
 
+    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        print("Ο χρήστης δεν βρέθηκε.")
+        conn.close()
+        return []
+
+    user_id = user_row[0]
     offset = (page - 1) * books_per_page
-    cursor.execute('''
-        SELECT b.*
-        FROM books b
+    cursor.execute("""
+        SELECT b.* FROM books b
         JOIN user_book ub ON b.book_id = ub.book_id
-        JOIN users u ON ub.user_id = u.user_id
-        WHERE u.username = ?
+        WHERE ub.user_id = ?
         LIMIT ? OFFSET ?
-    ''', (username, books_per_page, offset))
+    """, (user_id, books_per_page, offset))
+
     books = cursor.fetchall()
     conn.close()
 
@@ -189,7 +203,7 @@ def get_books(username, page=1, books_per_page=10):
                 publisher=book[7]
             )
             book_models.append(book_model)
-            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}, Εκδότης: {book[7]}")
+            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}")
         return book_models
     else:
         print(f"Δεν υπάρχουν βιβλία στη σελίδα {page}.")
@@ -217,15 +231,15 @@ def get_book_ratings(book_title):
     if not result:
         print("Δεν βρέθηκε βιβλίο με αυτόν τον τίτλο.")
         conn.close()
-        return
+        return []
 
     book_id = result[0]
-    cursor.execute('''
+    cursor.execute("""
         SELECT r.value, r.comment, r.username
         FROM ratings r
         JOIN books_ratings br ON r.rating_id = br.rating_id
         WHERE br.book_id = ?
-    ''', (book_id,))
+    """, (book_id,))
     ratings = cursor.fetchall()
     conn.close()
 
@@ -236,9 +250,10 @@ def get_book_ratings(book_title):
     else:
         print("Δεν υπάρχουν βαθμολογίες για αυτό το βιβλίο.")
 
-# Παράδειγμα χρήσης
+    return ratings  # Επιστροφή της λίστας
+
+
 if __name__ == "__main__":
     create_database()
     insert_user("user1", "password123")
     login_user("user1", "password123")
-    # Μπορείς να καλέσεις insert_book() εδώ με ένα αντικείμενο Book και το username
