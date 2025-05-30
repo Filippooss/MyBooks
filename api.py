@@ -69,13 +69,39 @@ async def get_info(search_data):
     print(f"image calls:{image_calls_end - image_calls_start}")
     return results_list_data
 
-def api_call(search_data):
+def api_call(query, filter):
     start = time.perf_counter()
     url = 'https://www.googleapis.com/books/v1/volumes?q='
-    max_results = '&maxResults=10'
-    fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,categories,imageLinks))'
+    max_results = '&maxResults=15'
+    fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,imageLinks))'
     api_key = '&key=AIzaSyBl7lf8Y8Frix__Bh7OoqPZfKSvvgdQfUw'
-    full_url = url + search_data.replace(" ", "%20") + max_results + fields + api_key
+    if query != '':
+        url = url + query.replace(" ", "+")
+        query_exists = True
+    else:
+        query_exists = False
+    if filter == "Title":
+        title_keywords_list = filter.split()
+        for i, keyword in enumerate(title_keywords_list):
+            if i == 0 and query_exists == False:
+                url = url + 'intitle:' + keyword
+            else:
+                url = url + '+intitle:' + keyword
+    if filter == "Author":
+        author_keywords_list = filter.split()
+        for i, keyword in enumerate(author_keywords_list):
+            if i == 0 and query_exists == False:
+                url = url + 'inauthor:' + keyword
+            else:
+                url = url + '+inauthor:' + keyword
+    if filter == "Publisher":
+        publisher_keywords_list = filter.split()
+        for i, keyword in enumerate(publisher_keywords_list):
+            if i == 0 and query_exists == False:
+                url = url + 'inpublisher:' + keyword
+            else:
+                url = url + '+inpublisher:' + keyword
+    full_url = url  + max_results + fields + api_key
     response = request.urlopen(full_url)
     if response.code == 200:
         data = response.read()
