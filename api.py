@@ -60,7 +60,6 @@ async def get_info(search_data, filter_field):
     count = 0
     for result_list_entry in results_list_data:
         if type(result_list_entry["Εξώφυλλο"]) == str:
-            print(result_list_entry["Εξώφυλλο"])
             result_list_entry["Εξώφυλλο"] = results[count]
             count = count + 1
     image_calls_end = time.perf_counter()
@@ -73,29 +72,27 @@ def api_call(query, filter_field):
     max_results = '&maxResults=15'
     fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,imageLinks))'
     api_key = '&key=AIzaSyBl7lf8Y8Frix__Bh7OoqPZfKSvvgdQfUw'
-    if query != '':
-        url = url + query.replace(" ", "+")
-        query_exists = True
-    else:
-        query_exists = False
+    query_exists = False
     if filter_field == "None":
-        pass
+        if query != '':
+            url = url + query.replace(" ", "+")
+            query_exists = True
     if filter_field == "Title":
-        title_keywords_list = filter_field.split()
+        title_keywords_list = query.split()
         for i, keyword in enumerate(title_keywords_list):
             if i == 0 and query_exists == False:
                 url = url + 'intitle:' + keyword
             else:
                 url = url + '+intitle:' + keyword
     if filter_field == "Author":
-        author_keywords_list = filter_field.split()
+        author_keywords_list = query.split()
         for i, keyword in enumerate(author_keywords_list):
             if i == 0 and query_exists == False:
                 url = url + 'inauthor:' + keyword
             else:
                 url = url + '+inauthor:' + keyword
     if filter_field == "Publisher":
-        publisher_keywords_list = filter_field.split()
+        publisher_keywords_list = query.split()
         for i, keyword in enumerate(publisher_keywords_list):
             if i == 0 and query_exists == False:
                 url = url + 'inpublisher:' + keyword
@@ -118,7 +115,7 @@ def api_call(query, filter_field):
                         thumbnail = data_needed["items"][number]["volumeInfo"]["imageLinks"]["thumbnail"].replace("&edge=curl", "")
                         thumbnail = thumbnail.replace("&zoom=1", "&zoom=2")
                     else:
-                        thumbnail = "Assets/no_image.png"
+                        thumbnail = "https://books.google.com/books/content?id=RAEkxQEACAAJ&printsec=frontcover&img=1&zoom=2&source=gbs_api"
                     if "authors" in data_needed["items"][number]["volumeInfo"]:
                         author = data_needed["items"][number]["volumeInfo"]["authors"][0]
                     else:
