@@ -3,11 +3,13 @@ import json
 import time
 import asyncio
 import aiohttp
+from PIL import Image
+from io import BytesIO
 
 from Views.book_view import Book
 
 def fetch_book_data(search_data):
-    results_list = asyncio.run(api_call(search_data))
+    results_list = asyncio.run(get_info(search_data))
     books = []
     for result in results_list:
         book = Book(
@@ -23,8 +25,8 @@ def fetch_book_data(search_data):
         books.append(book)
     return books
 
-async def api_call(search_data):
-    results_list_data = get_info(search_data)
+async def get_info(search_data):
+    results_list_data = api_call(search_data)
     image_calls_start = time.perf_counter()
     urls = []
     for i in range(len(results_list_data)):
@@ -33,24 +35,47 @@ async def api_call(search_data):
     async with aiohttp.ClientSession() as session:
         for url in urls:
             if url != '':
-                tasks.append(get_image_data(session, url))
-                # tasks.append(asyncio.create_task(self.get_image_data(session, url)))
+                tasks.append(asyncio.create_task(get_image_data(session, url)))
+                #tasks.append(get_image_data(session, url))
         results = await asyncio.gather(*tasks)
     count = 0
-    for num in range(len(results_list_data)):
-        if results_list_data[num]["Εξώφυλλο"] != '':
-            results_list_data[num]["Εξώφυλλο"] = results[count]
+    urls_remaining = []
+    for result_list_entry in results_list_data:
+        if result_list_entry["Εξώφυλλο"] != '':
+            img = Image.open(BytesIO(results[count]))
+            print(type(img))
+            if img.size != (300, 48):
+                result_list_entry["Εξώφυλλο"] = results[count]
+                count = count + 1
+            else:
+                urls_remaining.append(result_list_entry["Εξώφυλλο"])
+                count = count + 1
+    for i in range(len(urls_remaining)):
+        urls_remaining[i] = urls_remaining[i].replace("&zoom=2", "&zoom=1")
+    tasks.clear()
+    results.clear()
+    async with aiohttp.ClientSession() as session:
+        for url in urls_remaining:
+            tasks.append(asyncio.create_task(get_image_data(session, url)))
+            # tasks.append(fetch_data(session, url))
+        results = await asyncio.gather(*tasks)
+    count = 0
+    for result_list_entry in results_list_data:
+        if type(result_list_entry["Εξώφυλλο"]) == str and result_list_entry["Εξώφυλλο"] != '':
+            print(result_list_entry["Εξώφυλλο"])
+            result_list_entry["Εξώφυλλο"] = results[count]
             count = count + 1
     image_calls_end = time.perf_counter()
     print(f"image calls:{image_calls_end - image_calls_start}")
     return results_list_data
 
-def get_info(search_data):
+def api_call(search_data):
     start = time.perf_counter()
     url = 'https://www.googleapis.com/books/v1/volumes?q='
     max_results = '&maxResults=10'
     fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,categories,imageLinks))'
-    full_url = url + search_data.replace(" ", "%20") + max_results + fields
+    api_key = '&key=AIzaSyBl7lf8Y8Frix__Bh7OoqPZfKSvvgdQfUw'
+    full_url = url + search_data.replace(" ", "%20") + max_results + fields + api_key
     response = request.urlopen(full_url)
     if response.code == 200:
         data = response.read()
@@ -64,7 +89,8 @@ def get_info(search_data):
                 else:
                     title = ''
                 if "imageLinks" in data_needed["items"][number]["volumeInfo"]:
-                    thumbnail = data_needed["items"][number]["volumeInfo"]["imageLinks"]["thumbnail"]
+                    thumbnail = data_needed["items"][number]["volumeInfo"]["imageLinks"]["thumbnail"].replace("&edge=curl", "")
+                    thumbnail = thumbnail.replace("&zoom=1", "&zoom=2")
                 else:
                     thumbnail = ''
                 if "authors" in data_needed["items"][number]["volumeInfo"]:
