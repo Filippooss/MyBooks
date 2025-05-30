@@ -35,22 +35,19 @@ async def get_info(search_data, filter_field):
     tasks = []
     async with aiohttp.ClientSession() as session:
         for url in urls:
-            if url != '':
-                tasks.append(asyncio.create_task(get_image_data(session, url)))
-                #tasks.append(get_image_data(session, url))
+            tasks.append(asyncio.create_task(get_image_data(session, url)))
+            #tasks.append(get_image_data(session, url))
         results = await asyncio.gather(*tasks)
     count = 0
     urls_remaining = []
     for result_list_entry in results_list_data:
-        if result_list_entry["Εξώφυλλο"] != '':
-            img = Image.open(BytesIO(results[count]))
-            print(type(img))
-            if img.size != (300, 48):
-                result_list_entry["Εξώφυλλο"] = results[count]
-                count = count + 1
-            else:
-                urls_remaining.append(result_list_entry["Εξώφυλλο"])
-                count = count + 1
+        img = Image.open(BytesIO(results[count]))
+        if img.size != (300, 48):
+            result_list_entry["Εξώφυλλο"] = results[count]
+            count = count + 1
+        else:
+            urls_remaining.append(result_list_entry["Εξώφυλλο"])
+            count = count + 1
     for i in range(len(urls_remaining)):
         urls_remaining[i] = urls_remaining[i].replace("&zoom=2", "&zoom=1")
     tasks.clear()
@@ -62,7 +59,7 @@ async def get_info(search_data, filter_field):
         results = await asyncio.gather(*tasks)
     count = 0
     for result_list_entry in results_list_data:
-        if type(result_list_entry["Εξώφυλλο"]) == str and result_list_entry["Εξώφυλλο"] != '':
+        if type(result_list_entry["Εξώφυλλο"]) == str:
             print(result_list_entry["Εξώφυλλο"])
             result_list_entry["Εξώφυλλο"] = results[count]
             count = count + 1
@@ -81,6 +78,8 @@ def api_call(query, filter_field):
         query_exists = True
     else:
         query_exists = False
+    if filter_field == "None":
+        pass
     if filter_field == "Title":
         title_keywords_list = filter_field.split()
         for i, keyword in enumerate(title_keywords_list):
@@ -119,7 +118,7 @@ def api_call(query, filter_field):
                         thumbnail = data_needed["items"][number]["volumeInfo"]["imageLinks"]["thumbnail"].replace("&edge=curl", "")
                         thumbnail = thumbnail.replace("&zoom=1", "&zoom=2")
                     else:
-                        thumbnail = ''
+                        thumbnail = "Assets/no_image.png"
                     if "authors" in data_needed["items"][number]["volumeInfo"]:
                         author = data_needed["items"][number]["volumeInfo"]["authors"][0]
                     else:
