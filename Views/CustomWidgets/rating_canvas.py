@@ -41,7 +41,8 @@ class RatingCanvas(tk.Frame):
             self.book_ratings[4] = sum5
 
     def plot_ratings(self):
-        fig, plot1 = plt.subplots(figsize=(2.5, 1))
-        plt.tight_layout()
+        fig, plot1 = plt.subplots(figsize=(2.5, 1.5))
         plot1.bar(['1', '2', '3','4','5'], self.book_ratings)
+        plt.title("Book Ratings")
+        plt.tight_layout()
         return fig
