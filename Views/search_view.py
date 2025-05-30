@@ -37,7 +37,7 @@ class SearchView(View):
         self.bt_search = ttk.Button(self.f_top,text="Search",command=self.on_search)
         self.bt_search_online = ttk.Button(self.f_top ,text="Search Online",command=self.on_search_online)
         self.lb_filter=tk.Label(self.f_top,text="Select Filter")
-        self.cbb_filters = ttk.Combobox(self.f_top,textvariable=self.var_filter,values=("Title","Author","Publisher"),state="readonly")
+        self.cbb_filters = ttk.Combobox(self.f_top,textvariable=self.var_filter,values=("None","Title","Author","Publisher"),state="readonly")
         self.vsf_results = VerticalScrolledFrame(self)
         
         self.cbb_filters.bind("<<ComboboxSelected>>",self.on_filter_selected)
@@ -77,13 +77,14 @@ class SearchView(View):
         
         self.check_for_book()
 
-        self.cbb_filters.set("Title")
+        #set default filter
+        self.cbb_filters.set("None")
 
     def on_search_online(self):
         self.vsf_results.delete_children()
                     
         #self.search_results = asyncio.create_task(api.fetch_book_data(self.var_search_bar.get()))
-        thread = SearchOnline(self.var_search_bar.get())
+        thread = SearchOnline(self.var_search_bar.get(),self.cbb_filters.get())
         thread.start()
         self.bt_search.config(state="disabled")
         self.bt_search_online.config(state="disabled")
@@ -101,10 +102,8 @@ class SearchView(View):
             if len(self.search_results) < 1:
                 return
             for index,book in enumerate(self.search_results):
-                SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index)
-
-
-
+                
+                SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index,self._app.user.username)
 
 
     def on_search(self):
@@ -112,13 +111,13 @@ class SearchView(View):
         self.vsf_results.delete_children()
 
         #1 search book local
-        self.search_results:list = database.search_books(self.var_search_bar.get())
+        self.search_results:list = database.search_books(self.var_search_bar.get(),self._app.user.username)
         if len(self.search_results) < 1:
             self.vsf_results.show_message("No books found locally")
             return
 
         for index,book in enumerate(self.search_results):
-            SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index)
+            SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index,self._app.user.username)
 
     def on_filter_selected(self,event):
         self.cbb_filters.get()
@@ -169,7 +168,7 @@ class SearchView(View):
         #prospathia na vri vivlia local
         if(len(self.search_results) > 0):
             for index,book in enumerate(self.search_results):
-                    template = SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index)    
+                    template = SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index,self._app.user.username)    
         else:
             #an den vri vivlia vgazoume message
 
@@ -177,12 +176,13 @@ class SearchView(View):
             self.vsf_results.show_message("No books",on_retry)
 
 class SearchOnline(Thread):
-    def __init__(self,input):
+    def __init__(self,input,filter_field):
         super().__init__(daemon=True) # daemon=True means the thread will exit when the main program exits
         self.result = None
         self.input = input
+        self.filter_field = filter_field
     def run(self):
-        self.result = api.fetch_book_data(self.input)
+        self.result = api.fetch_book_data(self.input,self.filter_field)
 
 
 

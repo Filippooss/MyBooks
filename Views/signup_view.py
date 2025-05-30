@@ -52,7 +52,7 @@ class SignupView(View):
 
             print("o kodikos ine sostos")
             database.insert_user(self.ewt_username.get_value(),self.ewt_password.get_value())
-            #self.view_manager.change_view()
+            self._view_manager.change_view("LoginView")
         else:
             print("Cant sign up")
     def on_username_change_callback(self,*args):

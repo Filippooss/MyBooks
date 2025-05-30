@@ -78,7 +78,7 @@ class AddBookView(View):
                              
 
     def on_no_image(self):
-        image_path = ".\Images\TheSumofAllThings_cover.jpg"
+        image_path = "./Assets/TheSumofAllThings_cover.jpg"
 
         temp_emage = Image.open(image_path)
         self.image = temp_emage.resize((450,600))

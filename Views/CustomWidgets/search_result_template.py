@@ -7,9 +7,10 @@ from Models.book_model import Book
 import database
 
 class SearchResultTemplate(tk.Frame):
-    def __init__(self,master,book_model:Book,on_event,template_id:int):
+    def __init__(self,master,book_model:Book,on_event,template_id:int,username):
         super().__init__(master=master)
-
+        
+        self.username = username
         self.book_model = book_model
         self.on_event = on_event
         self.template_id = template_id
@@ -18,7 +19,7 @@ class SearchResultTemplate(tk.Frame):
         self.config(bg="yellow")
 
         #define style for ttk
-        add_raw = Image.open("Images\\bookmark_add_128_black.png")
+        add_raw = Image.open("Assets/bookmark_add_128_black.png")
         add_raw = add_raw.resize((20,20),Image.Resampling.LANCZOS)
         self.tk_image_add = ImageTk.PhotoImage(add_raw)
         
@@ -51,11 +52,11 @@ class SearchResultTemplate(tk.Frame):
         self.on_event(self.template_id)
 
     def on_add_book(self):
-        add_raw = Image.open("Images\\bookmark_added_128_black.png")
+        add_raw = Image.open("Assets/bookmark_added_128_black.png")
         add_raw = add_raw.resize((20,20),Image.Resampling.LANCZOS)
         self.tk_image_add = ImageTk.PhotoImage(add_raw)
 
         self.bt_add_book.config(image=self.tk_image_add)
-
+        #TODO
         database.insert_book(self.book_model)
         
