@@ -1,3 +1,4 @@
+import urllib
 from urllib import request
 import json
 import time
@@ -8,8 +9,8 @@ from io import BytesIO
 
 from Views.book_view import Book
 
-def fetch_book_data(search_data, filter):
-    results_list = asyncio.run(get_info(search_data, filter))
+def fetch_book_data(search_data, filter_field):
+    results_list = asyncio.run(get_info(search_data, filter_field))
     books = []
     for result in results_list:
         book = Book(
@@ -25,8 +26,8 @@ def fetch_book_data(search_data, filter):
         books.append(book)
     return books
 
-async def get_info(search_data, filter):
-    results_list_data = api_call(search_data, filter)
+async def get_info(search_data, filter_field):
+    results_list_data = api_call(search_data, filter_field)
     image_calls_start = time.perf_counter()
     urls = []
     for i in range(len(results_list_data)):
@@ -69,7 +70,7 @@ async def get_info(search_data, filter):
     print(f"image calls:{image_calls_end - image_calls_start}")
     return results_list_data
 
-def api_call(query, filter):
+def api_call(query, filter_field):
     start = time.perf_counter()
     url = 'https://www.googleapis.com/books/v1/volumes?q='
     max_results = '&maxResults=15'
@@ -80,21 +81,21 @@ def api_call(query, filter):
         query_exists = True
     else:
         query_exists = False
-    if filter == "Title":
+    if filter_field == "Title":
         title_keywords_list = filter.split()
         for i, keyword in enumerate(title_keywords_list):
             if i == 0 and query_exists == False:
                 url = url + 'intitle:' + keyword
             else:
                 url = url + '+intitle:' + keyword
-    if filter == "Author":
+    if filter_field == "Author":
         author_keywords_list = filter.split()
         for i, keyword in enumerate(author_keywords_list):
             if i == 0 and query_exists == False:
                 url = url + 'inauthor:' + keyword
             else:
                 url = url + '+inauthor:' + keyword
-    if filter == "Publisher":
+    if filter_field == "Publisher":
         publisher_keywords_list = filter.split()
         for i, keyword in enumerate(publisher_keywords_list):
             if i == 0 and query_exists == False:
@@ -102,48 +103,50 @@ def api_call(query, filter):
             else:
                 url = url + '+inpublisher:' + keyword
     full_url = url  + max_results + fields + api_key
-    response = request.urlopen(full_url)
-    if response.code == 200:
-        data = response.read()
-        book_data = data.decode('Utf-8')
-        data_needed = json.loads(book_data)
-        results_list = []
-        if "items" in data_needed:
-            for number in range(len(data_needed["items"])):
-                if "title" in data_needed["items"][number]["volumeInfo"]:
-                    title = data_needed["items"][number]["volumeInfo"]["title"]
-                else:
-                    title = ''
-                if "imageLinks" in data_needed["items"][number]["volumeInfo"]:
-                    thumbnail = data_needed["items"][number]["volumeInfo"]["imageLinks"]["thumbnail"].replace("&edge=curl", "")
-                    thumbnail = thumbnail.replace("&zoom=1", "&zoom=2")
-                else:
-                    thumbnail = ''
-                if "authors" in data_needed["items"][number]["volumeInfo"]:
-                    author = data_needed["items"][number]["volumeInfo"]["authors"][0]
-                else:
-                    author = ''
-                if "publisher" in data_needed["items"][number]["volumeInfo"]:
-                    publisher = data_needed["items"][number]["volumeInfo"]["publisher"]
-                else:
-                    publisher = ''
-                if "publishedDate" in data_needed["items"][number]["volumeInfo"]:
-                    published_date = data_needed["items"][number]["volumeInfo"]["publishedDate"]
-                else:
-                    published_date = ''
-                if "description" in data_needed["items"][number]["volumeInfo"]:
-                    description = data_needed["items"][number]["volumeInfo"]["description"]
-                else:
-                    description = ''
-                results_dict = {"Τίτλος": title, "Συγγραφέας": author, "Εκδότης": publisher, "Έτος έκδοσης": published_date, "Εξώφυλλο": thumbnail, "Περιγραφή": description}
-                results_list.append(results_dict)
-            end = time.perf_counter()
-            print(end-start)
-            return results_list
-        else:
-            print('not found')
-    else:
-        print('error')
+    try:
+        with request.urlopen(full_url) as response:
+            data = response.read()
+            book_data = data.decode('Utf-8')
+            data_needed = json.loads(book_data)
+            results_list = []
+            if "items" in data_needed:
+                for number in range(len(data_needed["items"])):
+                    if "title" in data_needed["items"][number]["volumeInfo"]:
+                        title = data_needed["items"][number]["volumeInfo"]["title"]
+                    else:
+                        title = ''
+                    if "imageLinks" in data_needed["items"][number]["volumeInfo"]:
+                        thumbnail = data_needed["items"][number]["volumeInfo"]["imageLinks"]["thumbnail"].replace("&edge=curl", "")
+                        thumbnail = thumbnail.replace("&zoom=1", "&zoom=2")
+                    else:
+                        thumbnail = ''
+                    if "authors" in data_needed["items"][number]["volumeInfo"]:
+                        author = data_needed["items"][number]["volumeInfo"]["authors"][0]
+                    else:
+                        author = ''
+                    if "publisher" in data_needed["items"][number]["volumeInfo"]:
+                        publisher = data_needed["items"][number]["volumeInfo"]["publisher"]
+                    else:
+                        publisher = ''
+                    if "publishedDate" in data_needed["items"][number]["volumeInfo"]:
+                        published_date = data_needed["items"][number]["volumeInfo"]["publishedDate"]
+                    else:
+                        published_date = ''
+                    if "description" in data_needed["items"][number]["volumeInfo"]:
+                        description = data_needed["items"][number]["volumeInfo"]["description"]
+                    else:
+                        description = ''
+                    results_dict = {"Τίτλος": title, "Συγγραφέας": author, "Εκδότης": publisher, "Έτος έκδοσης": published_date, "Εξώφυλλο": thumbnail, "Περιγραφή": description}
+                    results_list.append(results_dict)
+                end = time.perf_counter()
+                print(end-start)
+                return results_list
+            else:
+                print('not found')
+                return []
+    except urllib.error.URLError as e:
+        message = e.reason
+        return message
 
 async def get_image_data(session, url):
     call_s = time.perf_counter()
