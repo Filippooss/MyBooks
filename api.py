@@ -8,8 +8,8 @@ from io import BytesIO
 
 from Views.book_view import Book
 
-def fetch_book_data(search_data):
-    results_list = asyncio.run(get_info(search_data))
+def fetch_book_data(search_data, filter):
+    results_list = asyncio.run(get_info(search_data, filter))
     books = []
     for result in results_list:
         book = Book(
@@ -25,8 +25,8 @@ def fetch_book_data(search_data):
         books.append(book)
     return books
 
-async def get_info(search_data):
-    results_list_data = api_call(search_data)
+async def get_info(search_data, filter):
+    results_list_data = api_call(search_data, filter)
     image_calls_start = time.perf_counter()
     urls = []
     for i in range(len(results_list_data)):
