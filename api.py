@@ -1,5 +1,6 @@
 import urllib
 from urllib import request
+from urllib.parse import quote
 import json
 import time
 import asyncio
@@ -10,7 +11,7 @@ from io import BytesIO
 from Views.book_view import Book
 
 def fetch_book_data(search_data, filter_field):
-    results_list = asyncio.run(get_info(search_data, filter_field))
+    results_list = asyncio.run(get_info(quote(search_data), filter_field))
     books = []
     for result in results_list:
         book = Book(
