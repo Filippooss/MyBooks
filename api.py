@@ -73,29 +73,27 @@ def api_call(query, filter_field):
     url = 'https://www.googleapis.com/books/v1/volumes?q='
     max_results = '&maxResults=15'
     fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,imageLinks))'
-    query_exists = False
     if filter_field == "None":
         if query != '':
             url = url + query
-            query_exists = True
     if filter_field == "Title":
         title_keywords_list = query.split()
         for i, keyword in enumerate(title_keywords_list):
-            if i == 0 and query_exists == False:
+            if i == 0:
                 url = url + 'intitle:' + keyword
             else:
                 url = url + '+intitle:' + keyword
     if filter_field == "Author":
         author_keywords_list = query.split()
         for i, keyword in enumerate(author_keywords_list):
-            if i == 0 and query_exists == False:
+            if i == 0:
                 url = url + 'inauthor:' + keyword
             else:
                 url = url + '+inauthor:' + keyword
     if filter_field == "Publisher":
         publisher_keywords_list = query.split()
         for i, keyword in enumerate(publisher_keywords_list):
-            if i == 0 and query_exists == False:
+            if i == 0:
                 url = url + 'inpublisher:' + keyword
             else:
                 url = url + '+inpublisher:' + keyword
