@@ -12,7 +12,7 @@ class RatingCanvas(tk.Frame):
         self.book_ratings = [0,0,0,0,0]
         self.get_ratings(title)
 
-        canvas = FigureCanvasTkAgg(self.plot_ratings(), master=master)
+        canvas = FigureCanvasTkAgg(self.plot_ratings(),master=self)
         canvas.draw()
 
         canvas.get_tk_widget().pack()

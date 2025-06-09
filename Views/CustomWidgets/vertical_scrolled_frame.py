@@ -1,7 +1,5 @@
-from ast import main
-from math import fabs
 import tkinter as tk
-from tkinter import Misc, ttk,StringVar
+from tkinter import ttk,StringVar
 
 #https://coderslegacy.com/python/make-scrollable-frame-in-tkinter/
 class VerticalScrolledFrame(tk.Frame):
@@ -25,18 +23,16 @@ class VerticalScrolledFrame(tk.Frame):
 
         self.vscrollbar.config(command=self.cv_container.yview)
         self.hscrollbar.config(command=self.cv_container.xview)
-        #self.f_intirior.bind('<ListboxSelect>',self.on_item_click)
-        # Reset the view
-        self.cv_container.xview_moveto(0)
-        self.cv_container.yview_moveto(0)
 
         # Create a frame inside the canvas which will be scrolled with it.
         self.f_intirior.bind('<Configure>',self.configure_intirior)
         self.cv_container.bind('<Configure>',self.configure_canvas)
         self.window = self.cv_container.create_window((0,0),window = self.f_intirior,anchor ='nw' )
-        
+
         self.vscrollbar.pack(side='right',fill='y',expand=0)
         self.hscrollbar.pack(side='bottom',fill='x',expand=0)
+
+        """Do not add things to cv_container"""
         self.cv_container.pack(side='left',fill='both',expand=1)
 
         #self.f_message_box.pack()
@@ -51,13 +47,10 @@ class VerticalScrolledFrame(tk.Frame):
         # Update the scrollbars to match the size of the inner frame.
         size = (self.f_intirior.winfo_reqwidth(),self.f_intirior.winfo_reqheight())
         self.cv_container.config(scrollregion=(0,0,size[0],size[1]))#left,top,right,bottom
-        if(self.f_intirior.winfo_reqheight() < self.cv_container.winfo_height()):
+
+        if(self.cv_container.winfo_reqheight() < self.f_intirior.winfo_height()):
+            #self.f_intirior.configure(width=self.cv_container.winfo_width())
             pass
-
-        # Debug visual rectangle
-        self.cv_container.delete("debug_region")
-        self.cv_container.create_rectangle(0, 0, size[0], size[1], outline="blue", width=2, tags="debug_region")
-
 
 
     def configure_canvas(self,event):
@@ -65,7 +58,7 @@ class VerticalScrolledFrame(tk.Frame):
         #print(f"intirior width:{self.f_intirior.winfo_width()},height: {self.f_intirior.winfo_height()}")
         #print(f"canvas requested width:{self.cv_container.winfo_reqwidth()},height: {self.cv_container.winfo_reqheight()}")
         #print("Canvas width/height:", self.cv_container.winfo_width(), self.cv_container.winfo_height())
-        
+
         #to kanoume auto oste an exoume kati mikrotero apo ton canva na kani stretch
         if self.f_intirior.winfo_reqwidth() < self.cv_container.winfo_width():
             self.cv_container.itemconfigure(self.window, width=self.cv_container.winfo_width())
@@ -74,22 +67,20 @@ class VerticalScrolledFrame(tk.Frame):
 
     def get_is_empty(self) -> bool:
         return len(self.f_intirior.winfo_children()) < 1
-    
+
     def delete_children(self) :
         for widget in self.f_intirior.winfo_children():
             widget.destroy()
 
     def show_message(self,message:str,command=None):
+        self.delete_children()
+
         self.f_message_box.pack(fill="x",expand=1,anchor='center')
         self.lb_message.pack()
         self.bt_retry.pack()
-        
+
         self.var_message.set(message)
-        self.bt_retry.config(command=command)   
-
-
-
-
+        self.bt_retry.config(command=command)
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, master):
@@ -117,7 +108,7 @@ class ScrollableFrame(tk.Frame):
 
     def get_is_empty(self) -> bool:
         return len(self.f_intirior.winfo_children()) < 1
-    
+
     def delete_children(self) :
         for widget in self.f_intirior.winfo_children():
             widget.destroy()
