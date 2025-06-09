@@ -12,20 +12,23 @@ from Views.book_view import Book
 
 def fetch_book_data(search_data, filter_field):
     results_list = asyncio.run(get_info(quote(search_data), filter_field))
-    books = []
-    for result in results_list:
-        book = Book(
-            id=0,
-            title=result["Τίτλος"],
-            author=result["Συγγραφέας"],
-            publisher=result["Εκδότης"],
-            release_year=result["Έτος έκδοσης"],
-            description=result["Περιγραφή"],
-            image_raw=result["Εξώφυλλο"],
-            version=1
-        )
-        books.append(book)
-    return books
+    if type(results_list) != str:
+        books = []
+        for result in results_list:
+            book = Book(
+                id=0,
+                title=result["Τίτλος"],
+                author=result["Συγγραφέας"],
+                publisher=result["Εκδότης"],
+                release_year=result["Έτος έκδοσης"],
+                description=result["Περιγραφή"],
+                image_raw=result["Εξώφυλλο"],
+                version=1
+            )
+            books.append(book)
+        return books
+    else:
+        return results_list
 
 async def get_info(search_data, filter_field):
     results_list_data = api_call(search_data, filter_field)
