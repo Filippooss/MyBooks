@@ -73,7 +73,8 @@ class VerticalScrolledFrame(tk.Frame):
             widget.destroy()
 
     def show_message(self,message:str,command=None):
-        self.delete_children()
+        if len(self.children) > 0:
+            self.delete_children()
 
         self.f_message_box.pack(fill="x",expand=1,anchor='center')
         self.lb_message.pack()

@@ -16,7 +16,7 @@ from Views.CustomWidgets.vertical_scrolled_frame import (
     VerticalScrolledFrame,
 )
 from Views.view import View
-from tkinter.messagebox import showerror
+from tkinter.messagebox import showerror, showinfo
 
 
 class SearchView(View):
@@ -118,7 +118,11 @@ class SearchView(View):
         #1 search book local
         self.search_results:list = database.search_books(self.var_search_bar.get(),self._app.user.username)
         if len(self.search_results) < 1:
-            self.vsf_results.show_message("No books found locally")
+            #self.vsf_results.show_message("No books found locally")
+            showinfo("Info","No books found locally")
+            return
+        if type(self.search_results) == str:
+            showerror("Error",self.search_results)
             return
 
         for index,book in enumerate(self.search_results):
@@ -178,7 +182,9 @@ class SearchView(View):
             #an den vri vivlia vgazoume message
 
             #pername command gia na to ti tha kani sto retry
-            self.vsf_results.show_message("No books",on_retry)
+            #self.vsf_results.show_message("No books",on_retry)
+            showinfo("Info","No books found")
+            pass
 
 
 

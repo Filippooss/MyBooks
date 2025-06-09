@@ -15,8 +15,8 @@ from Views.view import View
 class AddBookView(View):
     def __init__(self,app,view_manager,args):
         super().__init__(app=app,view_manager=view_manager)
-        
-        
+
+
 
         #difine widgets
         self.title = ttk.Label(self,text="Add Book",font=('Arial', 40,'bold'))
@@ -29,15 +29,15 @@ class AddBookView(View):
         self.lb_discription = ttk.Label(self.f_right,text="Book Discription:")
         self.txt_discription =tk.Text(self.f_right,height=8)
 
-        self.f_left = tk.Frame(self.f_horizontal,background='red')
-        self.bt_import_image = ttk.Button(self.f_left,text="Import Book Cover",command=self.on_import_cover_image) 
+        self.f_left = tk.Frame(self.f_horizontal)
+        self.bt_import_image = ttk.Button(self.f_left,text="Import Book Cover",command=self.on_import_cover_image)
         self.bt_no_image = ttk.Button(self.f_left,text="No Image",command=self.on_no_image)
-        self.cv_image = tk.Canvas(self.f_left,borderwidth=0,highlightthickness=0,width=450,height=600,bg='blue')
+        self.cv_image = tk.Canvas(self.f_left,borderwidth=0,highlightthickness=0,width=450,height=600)
 
         self.bt_add_book = ttk.Button(self.f_right,text="Add New Book",command=self.on_add_book)
 
 
-        
+
         #display widgets
         self.title.pack()
         self.f_horizontal.pack(expand=1)
@@ -50,7 +50,7 @@ class AddBookView(View):
         self.dp_book_release.pack(anchor="w",pady=(0,10))
         self.lb_discription.pack(anchor="w")
         self.txt_discription.pack(pady=(0,10))
-        
+
         self.cv_image.pack(anchor='w',expand=1,fill="both")
         self.bt_import_image.pack(side="left",anchor="center")
         self.bt_no_image.pack(side="left",anchor='center')
@@ -61,7 +61,7 @@ class AddBookView(View):
         #image_raw
         buffer = io.BytesIO()
         self.image.save(buffer,format="PNG")
-        
+
         book = Book(
             id=0,
             title=self.ewt_book_title.get_value(),
@@ -75,7 +75,6 @@ class AddBookView(View):
         database.insert_book(book,self._app.user.username)
         #TODO: elenxos an i kataxorisi itan epitixis kai meta alagi tou view
         self._view_manager.change_view("LoginView")
-                             
 
     def on_no_image(self):
         image_path = "./Assets/TheSumofAllThings_cover.jpg"
@@ -83,12 +82,12 @@ class AddBookView(View):
         temp_emage = Image.open(image_path)
         self.image = temp_emage.resize((450,600))
         self.tk_image  = ImageTk.PhotoImage(self.image)
-        
+
         self.cv_image.create_image(0,0,anchor="nw",image=self.tk_image)
 
     def on_import_cover_image(self):
         image_path:str = fd.askopenfilename(title="Import Book Cover",filetypes=(("png files","*.png"),("jpeg files","*.jpeg"),("jpg files","*.jpg")),initialdir='/')
-        
+
 
         if image_path == "":
             print("No cover")
