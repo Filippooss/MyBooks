@@ -1,6 +1,6 @@
 import urllib
 from urllib import request
-from urllib.parse import quote_plus
+from urllib.parse import quote
 from urllib import error
 import json
 #import time
@@ -13,13 +13,15 @@ from io import BytesIO
 from Views.book_view import Book
 
 def fetch_book_data(search_data, filter_field):
-    results_list = asyncio.run(get_info(search_data, filter_field))     #Εκτελεί τήν συνάρτηση/coroutine api_call και η
+    results_list_data = api_call(search_data, filter_field)
+    results_list = asyncio.run(process_images(results_list_data))     #Εκτελεί τήν συνάρτηση/coroutine process_images και η
                                                     #οποία επιστρέφει τη λίστα με τα λεξικά με τις επεξεργασμένες εικόνες
     # Διαφορετικά, δημιουργία του event loop χειροκίνητα ώς εξής:
     # loop = asyncio.get_event_loop()
     # results_list = loop.run_until_complete(api_call(search_data))
     # loop.close()
     if type(results_list) != str:       #Άν δεν επιστράφηκε μήνυμα λάθους
+    #if type(results_list) == list:
         books = []      #Κάνει τη λίστα λεξικών λίστα αντικειμένων κλάσης Βook
         for result in results_list:
             book = Book(
@@ -36,13 +38,13 @@ def fetch_book_data(search_data, filter_field):
     else:
         return results_list     #Επιστρέφει το μήνυμα λάθους για να εμφανιστεί στο ui
 
-async def get_info(search_data, filter_field):
-    results_list_data = api_call(search_data, filter_field)
+async def process_images(results_list_data):
     #image_calls_start = time.perf_counter()
     # Άνοιγμα των εικόνων απο το url που είναι αποθηκευμένες στη λίστα με τα λεξικά και αποθήκευση τους σε binary μορφή
     # για να τις περάσουμε στο gui. Θα το κάνουμε ασύγχρονα
-    urls = []       #Μεταφέρουμε τις urls από τα λεξικά της λίστας αποτελεσμάτων σε μία δικιά τους λίστα
     if type(results_list_data) != str:
+    #if type(results_list_data) == list:
+        urls = []  # Μεταφέρουμε τις urls από τα λεξικά της λίστας αποτελεσμάτων σε μία δικιά τους λίστα
         for i in range(len(results_list_data)):
             urls.append(results_list_data[i]["Εξώφυλλο"])
         tasks = []      #Κάθε ένα task θα είναι το άνοιγμα μιας μεμονωμένης url εξώφυλλου
@@ -50,15 +52,25 @@ async def get_info(search_data, filter_field):
             async with aiohttp.ClientSession() as session:
                 # Διαφορετικά με urllib3:
                 # async with urllib3.AsyncPoolManager() as pm:
-                for url in urls:    #για κάθε μία url + αυτών που μπορεί να βάλαμε εμείς ή να είναι από μόνες τους "image not available"
-                    tasks.append(asyncio.create_task(get_image_data(session, url)))     #Τυλίγουμε τήν συνάρτηση/coroutine get_image_data
-                                                                                        #με την εκάστοτε url σε ένα task και
-                                                                                        #τα προσθέτουμε ένα-ένα στη λίστα tasks
-                    #tasks.append(get_image_data(session, url))
-                    # urllib3:
-                    # tasks.append(asyncio.create_task(get_image_data(pm, url))) Ή
-                    # tasks.append(get_image_data(pm, url)
-                results = await asyncio.gather(*tasks)      #Τα επιμέρους results είναι τύπου 'bytes'
+                try:
+                    for url in urls:    #για κάθε μία url + αυτών που μπορεί να βάλαμε εμείς ή να είναι από μόνες τους "image not available"
+                        tasks.append(asyncio.create_task(get_image_data(session, url)))     #Τυλίγουμε τήν συνάρτηση/coroutine get_image_data
+                                                                                            #με την εκάστοτε url σε ένα task και
+                                                                                            #τα προσθέτουμε ένα-ένα στη λίστα tasks
+                        #tasks.append(get_image_data(session, url))
+                        # urllib3:
+                        # tasks.append(asyncio.create_task(get_image_data(pm, url))) Ή
+                        # tasks.append(get_image_data(pm, url)
+                    results = await asyncio.gather(*tasks)      #Τα επιμέρους results είναι τύπου 'bytes'
+                except asyncio.TimeoutError:
+                    message = "Cover loading timed out"
+                    return message
+                except asyncio.CancelledError:
+                    message = "Cover loading cancelled"
+                    return message
+                except asyncio.InvalidStateError:
+                    message = "Error while gathering covers"
+                    return message
                 #Βάζουμε κάθε αποτέλεσμα, δηλ. τις εικόνες σε binary(τύπου 'bytes'), στήν θέση των αντίστοιχων url απο όπου προήλθαν πίσω στα αντίστοιχα λεξικά τους
                 count = 0       #Βοηθητικός απαριθμητής για τους δείκτες που αντιστοιχούν στα στοιχεία της λίστας results
                 urls_remaining = []
@@ -83,17 +95,31 @@ async def get_info(search_data, filter_field):
                 #άνοιγμα των υπόλοιπων εξώφυλλων σε μέγεθος thumbnail που ήταν προβληματικά σε μέγεθος small
                 try:        #Και η δευτερεύουσα επεξεργασία γίνεται στο ίδιο ClientSession για να επωφεληθούμε του connection pooling.
                     if len(urls_remaining) != 0:
-                        for url in urls_remaining:
-                            tasks.append(asyncio.create_task(get_image_data(session, url)))
-                            # tasks.append(fetch_data(session, url))
-                        results = await asyncio.gather(*tasks)
-                        count = 0
-                        for result_list_entry in results_list_data:     #Τοποθέτηση τους πίσω στην αρχική λίστα. Είναι γεμάτη από εικόνες μεγέθους small
-                                                                        #πλήν εκείνων που είχαν πρόβλημα στη θέση των οπίων έχουμε ακόμα τo string της url
-                            if type(result_list_entry["Εξώφυλλο"]) == str:
-                                result_list_entry["Εξώφυλλο"] = results[count]      #Εκμεταλλευόμαστε το γεγονός ότι τα results τοποθετήθηκαν με την ίδια
-                                                                                    #σειρά με την οποία εμφανίζονται και στήν λίστα
-                                count = count + 1
+                        try:
+                            for url in urls_remaining:
+                                tasks.append(asyncio.create_task(get_image_data(session, url)))
+                                # tasks.append(fetch_data(session, url))
+                            results = await asyncio.gather(*tasks)
+                        except asyncio.TimeoutError:
+                            message = "Cover loading timed out"
+                            return message
+                        except asyncio.CancelledError:
+                            message = "Cover loading cancelled"
+                            return message
+                        except asyncio.InvalidStateError:
+                            message = "Error while gathering covers"
+                            return message
+                        try:
+                            count = 0
+                            for result_list_entry in results_list_data:     #Τοποθέτηση τους πίσω στην αρχική λίστα. Είναι γεμάτη από εικόνες μεγέθους small
+                                                                            #πλήν εκείνων που είχαν πρόβλημα στη θέση των οπίων έχουμε ακόμα τo string της url
+                                if type(result_list_entry["Εξώφυλλο"]) == str:
+                                    result_list_entry["Εξώφυλλο"] = results[count]      #Εκμεταλλευόμαστε το γεγονός ότι τα results τοποθετήθηκαν με την ίδια
+                                                                                        #σειρά με την οποία εμφανίζονται και στήν λίστα
+                                    count = count + 1
+                        except IndexError:
+                            message = "Error during handling of the covers"
+                            return message
                         #image_calls_remaining_end = time.perf_counter()
                         #print(f'remaining:{image_calls_correct_end-image_calls_remaining_end}')
                     #image_calls_end = time.perf_counter()
@@ -107,39 +133,54 @@ async def get_info(search_data, filter_field):
     return results_list_data        #Άν στην κλήση στη σειρά 42 επιστράφηκε error string προσπερνώνται οι παραπάνω εντολές και επιστρέφεται το string
                                     #αλλιώς επιστροφή της ίδιας λίστας, που αντί για τις url, έχει τις εικόνες σε binary
 
+MAX_RESULTS = '&maxResults=15'      #Παράμετρος που περιορίζει τα αποτελέσματα δίνοντας το μέγιστο αριθμό
+FIELDS = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,imageLinks))'      #Παράμετρος που φορτώνει μόνο τα πεδία-κλειδιά που έχουμε επιλέξει
+
 def api_call(query, filter_field):
     #start = time.perf_counter()
-    query = quote_plus(query)        #Διαχείριση ειδικών χαρακτήρων και κωδικοποίηση μή ASCII κειμένου για χρήση τους σε url
-    url = 'https://www.googleapis.com/books/v1/volumes?q='      #Το πρώτο μέρος της url
-    max_results = '&maxResults=15'      #Παράμετρος που περιορίζει τα αποτελέσματα δίνοντας το μέγιστο αριθμό
-    fields = '&fields=items(volumeInfo(title,authors,publisher,publishedDate,description,imageLinks))'
-    if filter_field == "None":      #Άν το πεδίο φίλτρου είναι None τότε έχουμε γενική αναζήτηση
-        url = url + query       #+ query.replace(' ','+') άν στη γραμμή 114 χρησιμοποιούσαμε την απλή quote
-    #Για τη δημιουργία της σωστής url εκτός από τα docs ανέτρεξα και στην Advanced Book Search πληκτρολογώντας σε διάφορα entries
-    #και βλέποντας πώς σχηματιζόταν η url. 2 τρόπους εκ τον οποίο χρησιμοποίησα τον πιό σύνηθες
-    #Δοκίμασα να τα γράφω όλα με τη μορφή '+something:' και δούλεψε και αυτό βέβαια αλλά δεν ήταν ακριβώς όπως έβλεπα να σχηματίζεται η url
-    if filter_field == "Title":
-        title_keywords_list = query.split()     #Χωρίζουμε το string στα κενά και παίρνουμε τις πιθανές λέξεις μία-μία
-        for i, keyword in enumerate(title_keywords_list):       #Κάθε μία με την αντίστοιχη παράμετρο μπροστά
-            if i == 0:                                          #και κάθε πρώτη χωρίς το '+'
-                url = url + 'intitle:' + keyword
-            else:
-                url = url + '+intitle:' + keyword
-    if filter_field == "Author":
-        author_keywords_list = query.split()
-        for i, keyword in enumerate(author_keywords_list):
-            if i == 0:
-                url = url + 'inauthor:' + keyword
-            else:
-                url = url + '+inauthor:' + keyword
-    if filter_field == "Publisher":
-        publisher_keywords_list = query.split()
-        for i, keyword in enumerate(publisher_keywords_list):
-            if i == 0:
-                url = url + 'inpublisher:' + keyword
-            else:
-                url = url + '+inpublisher:' + keyword
-    full_url = url  + max_results + fields
+    query = quote(query)        #Διαχείριση ειδικών χαρακτήρων και κωδικοποίηση μή ASCII κειμένου για χρήση τους σε url
+    url = 'https://www.googleapis.com/books/v1/volumes?q='  # Το πρώτο μέρος της url
+    if query != '':
+        # if filter_field == "None":      #Άν το πεδίο φίλτρου είναι None τότε έχουμε γενική αναζήτηση
+        #     url = url + query + query.replace(' ','+')  #άν στη γραμμή 114 χρησιμοποιούσαμε quote_plus δέν χρειάζεται
+        # #Για τη δημιουργία της σωστής url εκτός από τα docs ανέτρεξα και στην Advanced Book Search πληκτρολογώντας σε διάφορα entries
+        # #και βλέποντας πώς σχηματιζόταν η url. 1ος τρόπος
+        # if filter_field == "Title":
+        #     title_keywords_list = query.split()     #Χωρίζουμε το string στα κενά και παίρνουμε τις πιθανές λέξεις μία-μία
+        #     for i, keyword in enumerate(title_keywords_list):       #Κάθε μία με την αντίστοιχη παράμετρο μπροστά
+        #         if i == 0:                                          #και κάθε πρώτη χωρίς το '+'
+        #             url = url + 'intitle:' + keyword
+        #         else:
+        #             url = url + '+intitle:' + keyword
+        # if filter_field == "Author":
+        #     author_keywords_list = query.split()
+        #     for i, keyword in enumerate(author_keywords_list):
+        #         if i == 0:
+        #             url = url + 'inauthor:' + keyword
+        #         else:
+        #             url = url + '+inauthor:' + keyword
+        # if filter_field == "Publisher":
+        #     publisher_keywords_list = query.split()
+        #     for i, keyword in enumerate(publisher_keywords_list):
+        #         if i == 0:
+        #             url = url + 'inpublisher:' + keyword
+        #         else:
+        #             url = url + '+inpublisher:' + keyword
+        if filter_field == "None":      #Άν το πεδίο φίλτρου είναι None τότε έχουμε γενική αναζήτηση
+            url = url + query + query.replace(' ','+')  #άν στη γραμμή 114 χρησιμοποιούσαμε quote_plus δέν χρειάζεται
+        #Για τη δημιουργία της σωστής url εκτός από τα docs ανέτρεξα και στην Advanced Book Search πληκτρολογώντας σε διάφορα entries
+        #και βλέποντας πώς σχηματιζόταν η url. 2 τρόπος
+        #Δοκίμασα να τα γράφω όλα με τη μορφή '+something:' και δούλεψε και αυτό
+        if filter_field == "Title":
+            url = url + 'intitle:' + query.replace(' ','+')
+        if filter_field == "Author":
+            url = url + 'inauthor:' + query.replace(' ','+')
+        if filter_field == "Publisher":
+            url = url + 'inpublisher:' + query.replace(' ','+')
+    else:
+        message = 'Please type something in the search field'
+        return message
+    full_url = url + MAX_RESULTS + FIELDS
     try:
         with request.urlopen(full_url) as response:
             data = response.read()      #Σε 'bytes'
@@ -198,8 +239,8 @@ def api_call(query, filter_field):
                 #print(end-start)
                 return results_list
             else:
-                print('not found')
-                return []
+                message = "No results"
+                return message
     except urllib.error.URLError as e:      #Όλες οι πιθανές εξαιρέσεις που μπορεί να προκύψουν από την urllib
         message = str(e.reason)
         return message
@@ -215,14 +256,7 @@ def api_call(query, filter_field):
 async def get_image_data(session, url):     #urllib3:async def get_image_data(pm, url):
     #call_s = time.perf_counter()
     async with session.get(url) as response:
-<<<<<<< HEAD
-        data = await response.read()
-        call_e = time.perf_counter()
-        print(f"call:{call_e-call_s}")
-        return data
-=======
         data = await response.read()        #Διαβάζουμε τα περιεχόμενα της απάντησης. Επιστρέφει 'bytes'
         #call_e = time.perf_counter()
         #print(f"call:{call_e-call_s}")
         return data
->>>>>>> 9e8c8ce4a95360d06ea796bd969d5514cfb0e203
