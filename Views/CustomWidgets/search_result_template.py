@@ -59,4 +59,4 @@ class SearchResultTemplate(tk.Frame):
 
         self.bt_add_book.config(image=self.tk_image_add)
         #TODO
-        database.insert_book(self.book_model)
+        database.insert_book(self.book_model,self.username)
