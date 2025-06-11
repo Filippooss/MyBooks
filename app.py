@@ -4,7 +4,6 @@ import database
 from Models.user_model import User
 from Utility.view_manager import ViewManager
 
-
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -18,15 +17,15 @@ class App(tk.Tk):
         self.title("MyBooks")
         self.geometry(f"420x420+{int(screen_width/2 - 700/2)}+{int(screen_height/2 - 700/2)}")
         self.minsize(700,700)
-        
+
         try:
             app_icon = tk.PhotoImage(file='./Assets/book.png')
             self.iconphoto(True,app_icon)
         except Exception as e:
             print(f"Could not load icon:{e}")
-        
+
         # main window setup
-        
+
         # menubar
         self.menubar = tk.Menu(self)
         self.config(menu=self.menubar)
@@ -41,7 +40,7 @@ class App(tk.Tk):
     def on_log_out(self):
         self.disable_add_book()
         self.view_manager.change_view("LoginView")
-    
+
     def on_add_book(self):
         self.view_manager.change_view("AddBookView")
 

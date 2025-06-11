@@ -35,6 +35,7 @@ class AddBookView(View):
         self.cv_image = tk.Canvas(self.f_left,borderwidth=0,highlightthickness=0,width=450,height=600)
 
         self.bt_add_book = ttk.Button(self.f_right,text="Add New Book",command=self.on_add_book)
+        self.bt_cancel = ttk.Button(self,text="Cancel",command=self.on_cancel)
 
 
 
@@ -57,6 +58,8 @@ class AddBookView(View):
 
         self.bt_add_book.pack()
 
+        self.bt_cancel.pack(anchor="w")
+
     def on_add_book(self):
         #image_raw
         buffer = io.BytesIO()
@@ -74,10 +77,10 @@ class AddBookView(View):
         )
         database.insert_book(book,self._app.user.username)
         #TODO: elenxos an i kataxorisi itan epitixis kai meta alagi tou view
-        self._view_manager.change_view("LoginView")
+        self._view_manager.change_view("SearchView")
 
     def on_no_image(self):
-        image_path = "./Assets/TheSumofAllThings_cover.jpg"
+        image_path = "./Assets/no_image.png"
 
         temp_emage = Image.open(image_path)
         self.image = temp_emage.resize((450,600))
@@ -101,6 +104,8 @@ class AddBookView(View):
         #self.cv_image.config(width=500,height=500)
         self.cv_image.create_image(0,0,anchor="nw",image=self.tk_image)
 
+    def on_cancel(self):
+        self._view_manager.change_view("SearchView")
 
     def _display_view(self):
         self.pack(expand=True,fill="both")

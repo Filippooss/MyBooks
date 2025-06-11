@@ -11,7 +11,7 @@ class LoginView(View):
         super().__init__(app=app,view_manager=view_manager)
 
         user_data = save_manager.load("user")
-        app_data = save_manager.load("app") 
+        app_data = save_manager.load("app")
         self.app = app
 
         self.var_password = tk.StringVar()
@@ -52,41 +52,45 @@ class LoginView(View):
         self.entry_username.focus()
 
         #load data
-        if(len(user_data) > 0):
-            self.var_username.set(user_data["name"]) 
-            self.var_password.set(user_data["password"]) 
-        if(len(app_data) > 0):
+        if("name" in user_data):
+            self.var_username.set(user_data["name"])
+        if("password" in user_data):
+            self.var_password.set(user_data["password"])
+        #auto kani overite ta proigoumena
+        if "save_credentials" not in app_data.keys():
+            self.var_username.set("")
+            self.var_password.set("")
+        if len(app_data) > 0:
             self.var_save_credentials.set(app_data["save_credentials"])
 
-
-        # otan den 3ero ti args perni ena widget
-        # print(lb_password_info.configure().keys())
-    
     def on_enter_pressed(self,event):
         print("1")
         self.on_login()
 
     def navigate_to_signup_view(self):
         self._view_manager.change_view("SignupView")
-    
+
     #define how this view is going to be displayed
     def _display_view(self):
         self.pack(fill='both',expand=1)
-    
+
+    def _hide_view(self):
+        self._hide_view()
+        self.on_save_credentials()
 
     def on_login(self):
 
         is_correct = database.login_user(self.var_username.get(),self.var_password.get())
 
         if is_correct :
-            
+
             if(self.var_save_credentials):
                 data = {
                     "name":self.var_username.get(),
                     "password":self.var_password.get()
                     }
                 save_manager.save(data,"user")
-            
+
             self.app.set_current_user(User(self.var_username.get(),self.var_password.get()))
             self._app.enable_add_book()
             self._view_manager.change_view("SearchView")
@@ -101,10 +105,7 @@ class LoginView(View):
         save_data ={
             "save_credentials":self.var_save_credentials.get()
         }
-
         save_manager.save(save_data,"app")
 
     def on_username_change_callback(self,event):
         pass
-
-

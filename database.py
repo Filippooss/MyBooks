@@ -1,22 +1,21 @@
 import sqlite3
-from api import Book
+from Models.book_model import Book
 
 def create_database():
     conn = sqlite3.connect("mybooks.db")
     cursor = conn.cursor()
 
     # 1) Δημιουργία πίνακα χρηστών (users)
-    cursor.execute(''' 
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            email TEXT
+            password TEXT NOT NULL
         )
     ''')
 
     # 2) Δημιουργία πίνακα βιβλίων (books)
-    cursor.execute(''' 
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS books (
             book_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -30,7 +29,7 @@ def create_database():
     ''')
 
     # 3) Δημιουργία πίνακα βαθμολογιών (ratings)
-    cursor.execute(''' 
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS ratings (
             rating_id INTEGER PRIMARY KEY AUTOINCREMENT,
             value INTEGER CHECK(value BETWEEN 1 AND 5),
@@ -41,7 +40,7 @@ def create_database():
     ''')
 
     # 4) Δημιουργία πίνακα συσχέτισης βιβλίων-βαθμολογιών (books_ratings)
-    cursor.execute(''' 
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS books_ratings (
             book_id INTEGER,
             rating_id INTEGER,
@@ -52,7 +51,7 @@ def create_database():
     ''')
 
     # 5) Δημιουργία πίνακα συσχέτισης χρηστών-βιβλίων (user_book)
-    cursor.execute(''' 
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS user_book (
             user_id INTEGER,
             book_id INTEGER,
@@ -83,13 +82,12 @@ def insert_book(book_model: Book, username: str):
 
     # Εισαγωγή βιβλίου
     cursor.execute("""
-        INSERT INTO books (title, description, author, version, image, release_year, publisher) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO books (title, description, author, image, release_year, publisher)
+        VALUES (?, ?, ?, ?, ?, ?)
     """, (
         book_model.title,
         book_model.description,
         book_model.author,
-        book_model.version,
         book_model.image_raw,
         book_model.release_year,
         book_model.publisher
@@ -153,7 +151,6 @@ def search_books(title: str, username: str):
                 title=book[1],
                 description=book[2],
                 author=book[3],
-                version=book[4],
                 image_raw=book[5],
                 release_year=book[6],
                 publisher=book[7]
@@ -197,10 +194,9 @@ def get_books(username: str, page=1, books_per_page=10):
                 title=book[1],
                 description=book[2],
                 author=book[3],
-                version=book[4],
-                image_raw=book[5],
-                release_year=book[6],
-                publisher=book[7]
+                image_raw=book[4],
+                release_year=book[5],
+                publisher=book[6]
             )
             book_models.append(book_model)
             print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}")

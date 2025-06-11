@@ -10,9 +10,9 @@ class VerticalScrolledFrame(tk.Frame):
 
         self.vscrollbar = ttk.Scrollbar(self,orient='vertical')
         self.hscrollbar = ttk.Scrollbar(self,orient='horizontal')
-        self.cv_container = tk.Canvas(self,bd=0,highlightthickness=0,bg="#edfcab",yscrollcommand=self.vscrollbar.set,
+        self.cv_container = tk.Canvas(self,bd=0,highlightthickness=0,yscrollcommand=self.vscrollbar.set,
                                       xscrollcommand=self.hscrollbar.set)#apalo prasino
-        self.f_intirior = tk.Frame(self.cv_container,bg="#fce2ab")#apalo kokkino
+        self.f_intirior = tk.Frame(self.cv_container)#apalo kokkino
         self.f_message_box = tk.Frame(self.f_intirior)
         self.lb_message = ttk.Label(self.f_message_box,textvariable=self.var_message)
         self.bt_retry = ttk.Button(self.f_message_box,text="Retry")
@@ -72,6 +72,8 @@ class VerticalScrolledFrame(tk.Frame):
         for widget in self.f_intirior.winfo_children():
             widget.destroy()
 
+    #TODO
+    # make a faction that will
     def show_message(self,message:str,command=None):
         if len(self.children) > 0:
             self.delete_children()
@@ -86,10 +88,10 @@ class VerticalScrolledFrame(tk.Frame):
 class ScrollableFrame(tk.Frame):
     def __init__(self, master):
         super().__init__(master=master)
-        canvas = tk.Canvas(self,bg="#edfcab")
+        canvas = tk.Canvas(self)
         scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
         scrollbar_h = tk.Scrollbar(self, orient="horizontal", command=canvas.xview)
-        self.f_intirior = tk.Frame(canvas,bg="#fce2ab")
+        self.f_intirior = tk.Frame(canvas,)
 
         self.f_intirior.bind(
             "<Configure>",

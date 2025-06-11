@@ -23,7 +23,6 @@ def fetch_book_data(search_data, filter_field):
                 release_year=result["Έτος έκδοσης"],
                 description=result["Περιγραφή"],
                 image_raw=result["Εξώφυλλο"],
-                version=1
             )
             books.append(book)
         return books

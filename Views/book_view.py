@@ -27,10 +27,10 @@ class BookView(View):
         self.f_right = tk.Frame(self.vcf.f_intirior)
         self.f_left = tk.Frame(self.vcf.f_intirior)
 
-        self.lb_title = tk.Label(self.f_right,textvariable=self.var_title, font=("Arial",30))
+        self.lb_title = tk.Label(self.f_right,textvariable=self.var_title, font=("Arial",25),wraplength=300)
         self.lb_author = tk.Label(self.f_right,textvariable=self.var_author)
         self.lb_publisher = tk.Label(self.f_right,textvariable=self.var_publisher)
-        self.lb_description = tk.Label(self.f_right,textvariable=self.var_description)
+        self.lb_description = tk.Label(self.f_right,textvariable=self.var_description,wraplength=500)
 
         self.cv_image = tk.Canvas(self.f_left,width=400,height=550)
         self.bt_back = ttk.Button(self.f_left,text="Back",command=self.on_back)

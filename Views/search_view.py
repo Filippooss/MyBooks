@@ -6,7 +6,8 @@ from tkinter import ttk
 import api
 import database
 import Utility.save_manager as save_manager
-from Models.book_model import Book
+from Models.book_model import from_json as book_from_json
+
 from Views.book_view import BookView
 from Views.CustomWidgets.custom_notebook import CustomNotebook
 from Views.CustomWidgets.entry_with_text import EntryWithText
@@ -17,6 +18,7 @@ from Views.CustomWidgets.vertical_scrolled_frame import (
 )
 from Views.view import View
 from tkinter.messagebox import showerror, showinfo
+import traceback
 
 
 class SearchView(View):
@@ -71,7 +73,7 @@ class SearchView(View):
         if self.save_dick.get("displayed_books"):
             serialized_books = self.save_dick["displayed_books"]
             for index,book_serialized in enumerate(serialized_books):
-                book_model = Book.from_json(book_serialized)
+                book_model = book_from_json(book_serialized)
 
                 SearchResultTemplate(self.vsf_results.f_intirior,book_model,self.on_template_clicked,index,self._app.user.username)
                 self.search_results.append(book_model)
@@ -100,10 +102,14 @@ class SearchView(View):
             self.bt_search_online.config(state="enabled")
 
             self.search_results = thread.result
-            if len(self.search_results) < 1:
-                return
+
             if type(self.search_results) == str:
                 showerror("Error",self.search_results)
+                return
+
+            traceback.print_exc()
+
+            if len(self.search_results) < 1:
                 return
 
             for index,book in enumerate(self.search_results):
@@ -117,12 +123,13 @@ class SearchView(View):
 
         #1 search book local
         self.search_results:list = database.search_books(self.var_search_bar.get(),self._app.user.username)
-        if len(self.search_results) < 1:
-            #self.vsf_results.show_message("No books found locally")
-            showinfo("Info","No books found locally")
-            return
+
         if type(self.search_results) == str:
             showerror("Error",self.search_results)
+            return
+
+        if len(self.search_results) < 1:
+            showinfo("Info","No books found locally")
             return
 
         for index,book in enumerate(self.search_results):
@@ -166,9 +173,6 @@ class SearchView(View):
         return super()._destroy_view()
 
     def check_for_book(self,event=None):
-        def on_retry():
-            #TODO
-            pass
         #exi proigithi load opote an i lista exi idi adikimena den kanoume tipota
         if len(self.search_results) > 0:
             return
@@ -180,9 +184,6 @@ class SearchView(View):
                     template = SearchResultTemplate(self.vsf_results.f_intirior,book,self.on_template_clicked,index,self._app.user.username)
         else:
             #an den vri vivlia vgazoume message
-
-            #pername command gia na to ti tha kani sto retry
-            #self.vsf_results.show_message("No books",on_retry)
             showinfo("Info","No books found")
             pass
 
@@ -196,3 +197,5 @@ class SearchOnline(Thread):
         self.filter_field = filter_field
     def run(self):
         self.result = api.fetch_book_data(self.input,self.filter_field)
+        if self.result is None:
+            traceback.print_exc("Auto den prepi na ine None type" + type(self.result))
