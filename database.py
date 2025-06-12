@@ -21,7 +21,6 @@ def create_database():
             title TEXT NOT NULL,
             description TEXT,
             author TEXT NOT NULL,
-            version TEXT,
             image BLOB,
             release_year INTEGER,
             publisher TEXT
@@ -151,12 +150,12 @@ def search_books(title: str, username: str):
                 title=book[1],
                 description=book[2],
                 author=book[3],
-                image_raw=book[5],
-                release_year=book[6],
-                publisher=book[7]
+                image_raw=book[4],
+                release_year=book[5],
+                publisher=book[6]
             )
             book_models.append(book_model)
-            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}")
+            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[5]}")
         return book_models
     else:
         print("Δεν βρέθηκε κάποιο βιβλίο.")
@@ -199,7 +198,7 @@ def get_books(username: str, page=1, books_per_page=10):
                 publisher=book[6]
             )
             book_models.append(book_model)
-            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[6]}")
+            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[5]}")
         return book_models
     else:
         print(f"Δεν υπάρχουν βιβλία στη σελίδα {page}.")

@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 
 from Models.book_model import Book
 import database
+from Utility import file_manager
 
 class SearchResultTemplate(tk.Frame):
     def __init__(self,master,book_model:Book,on_event,template_id:int,username):
@@ -20,14 +21,24 @@ class SearchResultTemplate(tk.Frame):
         #self.config()
 
         #define style for ttk
-        add_raw = Image.open("Assets/bookmark_add_128_black.png")
+        add_raw = Image.open(file_manager.resource_path("Assets/bookmark_add_128_black.png"))
         add_raw = add_raw.resize((20,20),Image.Resampling.LANCZOS)
         self.tk_image_add = ImageTk.PhotoImage(add_raw)
 
 
         temp = Image.open(io.BytesIO(book_model.image_raw))
         temp = temp.resize((135,200))
-        self.image = ImageTk.PhotoImage(image=temp)
+
+        try:
+            if not book_model.image_raw:
+                raise ValueError("No image data")
+            temp = Image.open(io.BytesIO(book_model.image_raw))
+        except Exception as e:
+            print(f"Could not load book image: {e}")
+            temp = Image.open(file_manager.resource_path("Assets/no_image.png"))  # fallback image
+        temp = temp.resize((135,200))
+        self.image = ImageTk.PhotoImage(temp)
+        
         #create widgets
         self.cv_image = tk.Canvas(self,width=temp.size[0],height=temp.size[1],borderwidth=0,highlightthickness=0)
         self.f_info = tk.Frame(self)
@@ -53,7 +64,7 @@ class SearchResultTemplate(tk.Frame):
         self.on_event(self.template_id)
 
     def on_add_book(self):
-        add_raw = Image.open("Assets/bookmark_added_128_black.png")
+        add_raw = Image.open(file_manager.resource_path("Assets/bookmark_added_128_black.png"))
         add_raw = add_raw.resize((20,20),Image.Resampling.LANCZOS)
         self.tk_image_add = ImageTk.PhotoImage(add_raw)
 

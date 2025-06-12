@@ -10,6 +10,7 @@ import database
 from Views.CustomWidgets.datepicker_with_text import DatepickerWithText
 from Views.CustomWidgets.entry_with_text import EntryWithText
 from Views.view import View
+from Utility import file_manager
 
 
 class AddBookView(View):
@@ -72,15 +73,14 @@ class AddBookView(View):
             description=self.txt_discription.get("1.0",tk.END),
             image_raw=buffer.getvalue(),
             release_year=self.dp_book_release.get_date_value(),
-            version=-1,
-            publisher="abc",
+            publisher="",
         )
         database.insert_book(book,self._app.user.username)
         #TODO: elenxos an i kataxorisi itan epitixis kai meta alagi tou view
         self._view_manager.change_view("SearchView")
 
     def on_no_image(self):
-        image_path = "./Assets/no_image.png"
+        image_path = file_manager.resource_path("Assets/no_image.png")
 
         temp_emage = Image.open(image_path)
         self.image = temp_emage.resize((450,600))
@@ -89,7 +89,7 @@ class AddBookView(View):
         self.cv_image.create_image(0,0,anchor="nw",image=self.tk_image)
 
     def on_import_cover_image(self):
-        image_path:str = fd.askopenfilename(title="Import Book Cover",filetypes=(("png files","*.png"),("jpeg files","*.jpeg"),("jpg files","*.jpg")),initialdir='/')
+        image_path:str = fd.askopenfilename(title="Import Book Cover",filetypes=(("image","*.png ,*.jpeg, *.jpg"),("jpeg files","*.jpeg"),("jpg files","*.jpg")),initialdir='/')
 
 
         if image_path == "":

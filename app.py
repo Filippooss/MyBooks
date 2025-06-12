@@ -3,6 +3,7 @@ import sys
 import database
 from Models.user_model import User
 from Utility.view_manager import ViewManager
+from Utility import file_manager
 
 class App(tk.Tk):
     def __init__(self):
@@ -19,7 +20,7 @@ class App(tk.Tk):
         self.minsize(700,700)
 
         try:
-            app_icon = tk.PhotoImage(file='./Assets/book.png')
+            app_icon = tk.PhotoImage(file= file_manager.resource_path('Assets/book.png'))
             self.iconphoto(True,app_icon)
         except Exception as e:
             print(f"Could not load icon:{e}")
