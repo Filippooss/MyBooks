@@ -167,7 +167,7 @@ def api_call(query, filter_field):
         #         else:
         #             url = url + '+inpublisher:' + keyword
         if filter_field == "None":      #Άν το πεδίο φίλτρου είναι None τότε έχουμε γενική αναζήτηση
-            url = url + query + query.replace(' ','+')  #άν στη γραμμή 114 χρησιμοποιούσαμε quote_plus δέν χρειάζεται
+            url = url + query.replace(' ','+')  #άν στη γραμμή 114 χρησιμοποιούσαμε quote_plus δέν χρειάζεται
         #Για τη δημιουργία της σωστής url εκτός από τα docs ανέτρεξα και στην Advanced Book Search πληκτρολογώντας σε διάφορα entries
         #και βλέποντας πώς σχηματιζόταν η url. 2 τρόπος
         #Δοκίμασα να τα γράφω όλα με τη μορφή '+something:' και δούλεψε και αυτό
