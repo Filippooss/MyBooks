@@ -89,7 +89,7 @@ class AddBookView(View):
         self.cv_image.create_image(0,0,anchor="nw",image=self.tk_image)
 
     def on_import_cover_image(self):
-        image_path:str = fd.askopenfilename(title="Import Book Cover",filetypes=(("image","*.png ,*.jpeg, *.jpg"),("jpeg files","*.jpeg"),("jpg files","*.jpg")),initialdir='/')
+        image_path:str = fd.askopenfilename(title="Import Book Cover",filetypes=(("image","*.png ,*.jpeg, *.jpg")),initialdir='/')
 
 
         if image_path == "":
