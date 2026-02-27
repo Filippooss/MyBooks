@@ -1,24 +1,28 @@
+from tkinter.ttk import Button
+
+
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import Frame, Label, Text, messagebox, ttk
 
 import database
 
 
 class RatingWidget(tk.Frame):
-    def __init__(self, master,book,username:str):
+    def __init__(self, master, book, username: str):
         super().__init__(master=master)
         self.book = book
-        self.username = username
+        self.username: str = username
         self.rating = 0
         self.stars = []
 
-        #define widgets
-        self.lb_title = tk.Label(self,text="Rate this book",font=("Arial",14))
-        self.f_stars= tk.Frame(self)
-        self.submit_button = ttk.Button(self, text="Submit", command=self.submit_rating)
-        self.lb_comment = tk.Label(self,text="Commend:")
-        self.comment_box = tk.Text(self,height=8)
-
+        # define widgets
+        self.lb_title: Label = tk.Label(self, text="Rate this book", font=("Arial", 14))
+        self.f_stars: Frame = tk.Frame(self)
+        self.submit_button: Button = ttk.Button(
+            self, text="Submit", command=self.submit_rating
+        )
+        self.lb_comment: Label = tk.Label(self, text="Commend:")
+        self.comment_box: Text = tk.Text(self, height=8)
 
         self.lb_title.pack(pady=10)
         self.f_stars.pack()
@@ -35,7 +39,7 @@ class RatingWidget(tk.Frame):
 
         self.submit_button.pack(pady=10)
 
-    def on_hover(self, index):
+    def on_hover(self, index: int):
         for i in range(5):
             self.stars[i].config(text="★" if i <= index else "☆")
 
@@ -48,20 +52,22 @@ class RatingWidget(tk.Frame):
         self.on_leave(None)
 
     def submit_rating(self):
-        
 
         if self.rating == 0:
-            messagebox.showwarning("No Rating", "Please select a rating before submitting.")
+            messagebox.showwarning(
+                "No Rating", "Please select a rating before submitting."
+            )
         else:
-            messagebox.showinfo("",f"You rate this book {self.rating} out of 5.")
+            messagebox.showinfo("", f"You rate this book {self.rating} out of 5.")
             comment_text = self.comment_box.get("1.0", tk.END).strip()
-            database.add_rating(book_id=self.book.id,
-                                username=self.username,
-                                value=self.rating,
-                                comment=comment_text)
-        
-        #clear fields
+            database.add_rating(
+                book_id=self.book.id,
+                username=self.username,
+                value=self.rating,
+                comment=comment_text,
+            )
+
+        # clear fields
         self.comment_box.delete("1.0", tk.END)
         self.rating = 0
         self.stars = []
-            

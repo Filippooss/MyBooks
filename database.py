@@ -1,254 +1,310 @@
+from csv import Error
 import sqlite3
 from Models.book_model import Book
+from Models.rating_model import Rating
+
 
 def create_database():
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
-
-    # 1) Δημιουργία πίνακα χρηστών (users)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-    ''')
-
-    # 2) Δημιουργία πίνακα βιβλίων (books)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS books (
-            book_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            description TEXT,
-            author TEXT NOT NULL,
-            image BLOB,
-            release_year INTEGER,
-            publisher TEXT
-        )
-    ''')
-
-    # 3) Δημιουργία πίνακα βαθμολογιών (ratings)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ratings (
-            rating_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            value INTEGER CHECK(value BETWEEN 1 AND 5),
-            comment TEXT,
-            username TEXT NOT NULL,
-            FOREIGN KEY (username) REFERENCES users(username)
-        )
-    ''')
-
-    # 4) Δημιουργία πίνακα συσχέτισης βιβλίων-βαθμολογιών (books_ratings)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS books_ratings (
-            book_id INTEGER,
-            rating_id INTEGER,
-            PRIMARY KEY (book_id, rating_id),
-            FOREIGN KEY (book_id) REFERENCES books(book_id),
-            FOREIGN KEY (rating_id) REFERENCES ratings(rating_id)
-        )
-    ''')
-
-    # 5) Δημιουργία πίνακα συσχέτισης χρηστών-βιβλίων (user_book)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS user_book (
-            user_id INTEGER,
-            book_id INTEGER,
-            PRIMARY KEY (user_id, book_id),
-            FOREIGN KEY (user_id) REFERENCES users(user_id),
-            FOREIGN KEY (book_id) REFERENCES books(book_id)
-        )
-    ''')
-
-    conn.commit()
-    conn.close()
-    print("Η βάση δεδομένων δημιουργήθηκε επιτυχώς!")
-
-def insert_user(username, password):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-        conn.commit()
-        print("Ο χρήστης προστέθηκε επιτυχώς!")
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
+
+            # 1) Users table creation (users)
+            _ = cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL
+                )
+            """
+            )
+
+            # 2) Books table creation (books)
+            _ = cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS books (
+                    book_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    author TEXT NOT NULL,
+                    publisher TEXT,
+                    release_year INTEGER,
+                    description TEXT,
+                    image BLOB
+                )
+            """
+            )
+
+            # 3) Ratings table creation (ratings)
+            _ = cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ratings (
+                    rating_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    value INTEGER CHECK(value BETWEEN 1 AND 5),
+                    comment TEXT,
+                    username TEXT NOT NULL,
+                    FOREIGN KEY (username) REFERENCES users(username)
+                )
+            """
+            )
+
+            # 4) Books_ratings table creation (books_ratings)
+            _ = cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS books_ratings (
+                    book_id INTEGER,
+                    rating_id INTEGER,
+                    PRIMARY KEY (book_id, rating_id),
+                    FOREIGN KEY (book_id) REFERENCES books(book_id),
+                    FOREIGN KEY (rating_id) REFERENCES ratings(rating_id)
+                )
+            """
+            )
+
+            # 5) User_book table creation (user_book)
+            _ = cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_book (
+                    user_id INTEGER,
+                    book_id INTEGER,
+                    PRIMARY KEY (user_id, book_id),
+                    FOREIGN KEY (user_id) REFERENCES users(user_id),
+                    FOREIGN KEY (book_id) REFERENCES books(book_id)
+                )
+            """
+            )
+
+            print("Database created successful!")
+    except Exception as e:
+        print("Error while creating tables: ", e)
+
+
+def insert_user(username: str, password: str):
+    try:
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
+            _ = cursor.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (username, password),
+            )
+            print("User added successful!")
     except sqlite3.IntegrityError:
-        print("Το όνομα χρήστη υπάρχει ήδη!")
-    conn.close()
+        print("User already exists!")
 
-def insert_book(book_model: Book, username: str):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
 
-    # Εισαγωγή βιβλίου
-    cursor.execute("""
-        INSERT INTO books (title, description, author, image, release_year, publisher)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (
-        book_model.title,
-        book_model.description,
-        book_model.author,
-        book_model.image_raw,
-        book_model.release_year,
-        book_model.publisher
-    ))
-    book_id = cursor.lastrowid
+def insert_book(book_model: Book, username: str) -> bool:
+    try:
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
 
-    # Εύρεση user_id από το username
-    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
-    user_row = cursor.fetchone()
-    if user_row:
-        user_id = user_row[0]
-        # Συσχέτιση με τον πίνακα user_book
-        cursor.execute("INSERT INTO user_book (user_id, book_id) VALUES (?, ?)", (user_id, book_id))
-        conn.commit()
-        print("Το βιβλίο προστέθηκε επιτυχώς και συνδέθηκε με τον χρήστη!")
-    else:
-        print("Ο χρήστης δεν βρέθηκε. Δεν έγινε συσχέτιση βιβλίου.")
+            # Insert Book
+            _ = cursor.execute(
+                """
+                INSERT INTO books (title, description, author, image, release_year, publisher)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    book_model.title,
+                    book_model.description,
+                    book_model.author,
+                    book_model.image_raw,
+                    book_model.release_year,
+                    book_model.publisher,
+                ),
+            )
+            book_id = cursor.lastrowid
 
-    conn.close()
+            # Find user_id
+            _ = cursor.execute(
+                "SELECT user_id FROM users WHERE username = ?", (username,)
+            )
+            user_row = cursor.fetchone()
 
-def login_user(username, password):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
-    user = cursor.fetchone()
-    conn.close()
-    if user:
-        print("Σύνδεση επιτυχής! Καλώς ήρθες,", username)
-        return True
-    else:
-        print("Λάθος όνομα χρήστη ή κωδικός!")
+            if not user_row:
+                raise ValueError("User not found")
+
+            user_id = user_row[0]
+            # Link user with book
+            _ = cursor.execute(
+                "INSERT INTO user_book (user_id, book_id) VALUES (?, ?)",
+                (user_id, book_id),
+            )
+            print("Book added successful!")
+            return True
+    except Exception as e:
+        print("Error while inserting new book:", e)
         return False
 
-def search_books(title: str, username: str):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
 
-    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
-    user_row = cursor.fetchone()
-    if not user_row:
-        print("Ο χρήστης δεν βρέθηκε.")
-        conn.close()
-        return []
-
-    user_id = user_row[0]
-    cursor.execute("""
-        SELECT b.* FROM books b
-        JOIN user_book ub ON b.book_id = ub.book_id
-        WHERE ub.user_id = ? AND b.title LIKE ?
-    """, (user_id, '%' + title + '%'))
-
-    books = cursor.fetchall()
-    conn.close()
-
-    book_models = []
-    if books:
-        print("Βρέθηκαν τα ακόλουθα βιβλία:")
-        for book in books:
-            book_model = Book(
-                id=book[0],
-                title=book[1],
-                description=book[2],
-                author=book[3],
-                image_raw=book[4],
-                release_year=book[5],
-                publisher=book[6]
+def login_user(username: str, password: str) -> bool:
+    try:
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
+            _ = cursor.execute(
+                "SELECT * FROM users WHERE username = ? AND password = ?",
+                (username, password),
             )
-            book_models.append(book_model)
-            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[5]}")
-        return book_models
-    else:
-        print("Δεν βρέθηκε κάποιο βιβλίο.")
-        return []
+            user = cursor.fetchone()
+            if user:
+                print("Login successful!", username)
+                return True
+            else:
+                raise Error("Wrong username or password!")
+    except Exception as e:
+        print("Error while validating user:", e)
+        return False
 
-def get_books(username: str, page=1, books_per_page=10):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
 
-    cursor.execute("SELECT user_id FROM users WHERE username = ?", (username,))
-    user_row = cursor.fetchone()
-    if not user_row:
-        print("Ο χρήστης δεν βρέθηκε.")
-        conn.close()
-        return []
+def search_books(title: str, username: str) -> list[Book]:
+    try:
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
 
-    user_id = user_row[0]
-    offset = (page - 1) * books_per_page
-    cursor.execute("""
-        SELECT b.* FROM books b
-        JOIN user_book ub ON b.book_id = ub.book_id
-        WHERE ub.user_id = ?
-        LIMIT ? OFFSET ?
-    """, (user_id, books_per_page, offset))
-
-    books = cursor.fetchall()
-    conn.close()
-
-    book_models = []
-    if books:
-        print(f"Σελίδα {page} - Βιβλία:")
-        for book in books:
-            book_model = Book(
-                id=book[0],
-                title=book[1],
-                description=book[2],
-                author=book[3],
-                image_raw=book[4],
-                release_year=book[5],
-                publisher=book[6]
+            _ = cursor.execute(
+                "SELECT user_id FROM users WHERE username = ?", (username,)
             )
-            book_models.append(book_model)
-            print(f"ID: {book[0]}, Τίτλος: {book[1]}, Συγγραφέας: {book[3]}, Έτος: {book[5]}")
-        return book_models
-    else:
-        print(f"Δεν υπάρχουν βιβλία στη σελίδα {page}.")
+            user_row = cursor.fetchone()
+            if not user_row:
+                raise Error("User not found")
+
+            user_id = user_row[0]
+            _ = cursor.execute(
+                """
+                SELECT b.* FROM books b
+                JOIN user_book ub ON b.book_id = ub.book_id
+                WHERE ub.user_id = ? AND b.title LIKE ?
+                """,
+                (user_id, "%" + title + "%"),
+            )
+
+            rows: list[tuple[int, str, str, str, int, str, bytes]] = cursor.fetchall()
+            if not rows:
+                raise Error("No books found")
+
+            book_models: list[Book] = [
+                Book(
+                    id=r[0],
+                    title=r[1],
+                    author=r[2],
+                    publisher=r[3],
+                    release_year=r[4],
+                    description=r[5],
+                    image_raw=r[6],
+                )
+                for r in rows
+            ]
+
+            return book_models
+    except Exception as e:
+        print("Error while searching a book: ", e)
         return []
 
-def add_rating(username, book_id, value, comment):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
 
-    cursor.execute("INSERT INTO ratings (value, comment, username) VALUES (?, ?, ?)", (value, comment, username))
-    rating_id = cursor.lastrowid
+def get_books(username: str, page: int = 1, books_per_page=10) -> list[Book]:
+    try:
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
 
-    cursor.execute("INSERT INTO books_ratings (book_id, rating_id) VALUES (?, ?)", (book_id, rating_id))
+            _ = cursor.execute(
+                "SELECT user_id FROM users WHERE username = ?", (username,)
+            )
+            user_row = cursor.fetchone()
+            if not user_row:
+                raise Error("User not found.")
 
-    conn.commit()
-    conn.close()
-    print("Η βαθμολογία προστέθηκε επιτυχώς!")
+            user_id = user_row[0]
+            offset = (page - 1) * books_per_page
+            _ = cursor.execute(
+                """
+                SELECT b.* FROM books b
+                JOIN user_book ub ON b.book_id = ub.book_id
+                WHERE ub.user_id = ?
+                LIMIT ? OFFSET ?
+            """,
+                (user_id, books_per_page, offset),
+            )
 
-def get_book_ratings(book_title):
-    conn = sqlite3.connect("mybooks.db")
-    cursor = conn.cursor()
+            rows: list[tuple[int, str, str, str, int, str, bytes]] = cursor.fetchall()
+            if not rows:
+                raise Error(f"No books in the page {page}.")
 
-    cursor.execute("SELECT book_id FROM books WHERE title = ?", (book_title,))
-    result = cursor.fetchone()
-    if not result:
-        print("Δεν βρέθηκε βιβλίο με αυτόν τον τίτλο.")
-        conn.close()
+            book_models: list[Book] = [
+                Book(
+                    id=r[0],
+                    title=r[1],
+                    author=r[2],
+                    publisher=r[3],
+                    release_year=r[4],
+                    description=r[5],
+                    image_raw=r[6],
+                )
+                for r in rows
+            ]
+            return book_models
+
+    except Exception as e:
+        print("Error while getting books: ", e)
         return []
 
-    book_id = result[0]
-    cursor.execute("""
-        SELECT r.value, r.comment, r.username
-        FROM ratings r
-        JOIN books_ratings br ON r.rating_id = br.rating_id
-        WHERE br.book_id = ?
-    """, (book_id,))
-    ratings = cursor.fetchall()
-    conn.close()
 
-    if ratings:
-        print(f"Βαθμολογίες για το βιβλίο: {book_title}")
-        for r in ratings:
-            print(f"Βαθμός: {r[0]}, Σχόλιο: {r[1]}, Χρήστης: {r[2]}")
-    else:
-        print("Δεν υπάρχουν βαθμολογίες για αυτό το βιβλίο.")
+def add_rating(username: str, book_id: str, value: int, comment: str):
+    try:
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
 
-    return ratings  # Επιστροφή της λίστας
+            _ = cursor.execute(
+                "INSERT INTO ratings (value, comment, username) VALUES (?, ?, ?)",
+                (value, comment, username),
+            )
+            rating_id = cursor.lastrowid
+
+            _ = cursor.execute(
+                "INSERT INTO books_ratings (book_id, rating_id) VALUES (?, ?)",
+                (book_id, rating_id),
+            )
+            print("Rating added successful")
+    except Exception as e:
+        print("Error while adding rating: ", e)
+
+
+def get_book_ratings(book_title: str) -> list[Rating]:
+    try:
+        with sqlite3.connect("mybooks.db") as conn:
+            cursor = conn.cursor()
+
+            _ = cursor.execute(
+                "SELECT book_id FROM books WHERE title = ?", (book_title,)
+            )
+            result = cursor.fetchone()
+            if not result:
+                raise Error("No book with this title")
+
+            book_id = result[0]
+            _ = cursor.execute(
+                """
+                SELECT r.value, r.comment, r.username
+                FROM ratings r
+                JOIN books_ratings br ON r.rating_id = br.rating_id
+                WHERE br.book_id = ?
+            """,
+                (book_id,),
+            )
+            rows: list[tuple[int, int, str, str]] = cursor.fetchall()
+            if not rows:
+                raise Error("No ratings found.")
+
+            ratings: list[Rating] = [Rating(r[0], r[1], r[2], r[3]) for r in rows]
+            print(f"Ratings for book: {book_title}")
+            for r in ratings:
+                print(f"Value: {r.value}, Comment: {r.comment}, User: {r.username}")
+
+            return ratings
+    except Exception as e:
+        print("Error while fetching book ratings: ", e)
+        return []
 
 
 if __name__ == "__main__":
     create_database()
-    insert_user("user1", "password123")
-    login_user("user1", "password123")
+    # insert_user("user1", "password123")
+    # login_user("user1", "password123")
