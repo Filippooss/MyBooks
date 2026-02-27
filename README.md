@@ -1,6 +1,5 @@
 # MyBooks
 
-<<<<<<< HEAD
 **My Books** is a desktop application built with Python that allows users to manage their personal book collection.
 
 The application follows the **MVC (Model–View–Controller)** architecture and uses a local database to store user accounts, books and user ratings.
@@ -77,6 +76,3 @@ Created as a university project for a course assignment
 ## 📜 License
 
 This project is for educational purposes.
-=======
-MyBooks is a python based, user friendly program, that allows the user to search, save and manage books that they desire. This program can be used offline as well as online. This project was made by computer science students for the final assignment.
->>>>>>> 00e041434c91e9640af688e75c99041fe4a67d07
