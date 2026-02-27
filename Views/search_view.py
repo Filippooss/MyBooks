@@ -18,7 +18,7 @@ from Views.CustomWidgets.vertical_scrolled_frame import (
 )
 from Views.view import View
 from tkinter.messagebox import showerror, showinfo
-import traceback
+#import traceback
 
 
 class SearchView(View):
@@ -107,7 +107,7 @@ class SearchView(View):
                 showerror("Error",self.search_results)
                 return
 
-            traceback.print_exc()
+            #traceback.print_exc()
 
             if len(self.search_results) < 1:
                 return
@@ -198,4 +198,4 @@ class SearchOnline(Thread):
     def run(self):
         self.result = api.fetch_book_data(self.input,self.filter_field)
         if self.result is None:
-            traceback.print_exc("Auto den prepi na ine None type" + type(self.result))
+            print("Auto den prepi na ine None type" + type(self.result))

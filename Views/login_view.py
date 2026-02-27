@@ -98,6 +98,7 @@ class LoginView(View):
             self.lb_password_info.config(foreground="red")
             self.var_password_info.set("Username or Password are incorect")
 
+    #test faction that let you skip the login
     def on_skip_login(self):
         self._view_manager.change_view("SearchView")
 

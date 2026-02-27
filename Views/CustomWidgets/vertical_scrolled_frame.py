@@ -72,8 +72,6 @@ class VerticalScrolledFrame(tk.Frame):
         for widget in self.f_intirior.winfo_children():
             widget.destroy()
 
-    #TODO
-    # make a faction that will
     def show_message(self,message:str,command=None):
         if len(self.children) > 0:
             self.delete_children()

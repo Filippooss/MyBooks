@@ -1,3 +1,6 @@
+#The main application file.
+#Run this script to start the application.
+
 import tkinter as tk
 import sys
 import database
@@ -30,7 +33,7 @@ class App(tk.Tk):
         # menubar
         self.menubar = tk.Menu(self)
         self.config(menu=self.menubar)
-        #
+        
         self.file_menu = tk.Menu(self.menubar,tearoff=0)
         self.menubar.add_cascade(label="File",menu=self.file_menu)
         self.file_menu.add_command(label="Add Book",command=self.on_add_book,state="disabled")
@@ -53,6 +56,7 @@ class App(tk.Tk):
     def disable_add_book(self):
         self.file_menu.entryconfig("Add Book",state="disabled")
 
+#Main entry point of the application
 if __name__ == "__main__":
     app = App()
     database.create_database()
